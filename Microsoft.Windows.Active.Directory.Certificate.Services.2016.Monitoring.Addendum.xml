@@ -1,0 +1,1734 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ManagementPack ContentReadable="true" SchemaVersion="2.0" OriginalSchemaVersion="1.1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <Manifest>
+    <Identity>
+      <ID>Microsoft.Windows.Active.Directory.Certificate.Services.2016.Monitoring.Addendum</ID>
+      <Version>1.0.0.4</Version>
+    </Identity>
+    <Name>Microsoft Windows Active Directory Certificate Services 2016 Monitoring Addendum</Name>
+    <References>
+      <Reference Alias="Health">
+        <ID>System.Health.Library</ID>
+        <Version>6.1.7221.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MSIGL">
+        <ID>Microsoft.SystemCenter.InstanceGroup.Library</ID>
+        <Version>6.1.7221.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MWA6M">
+        <ID>Microsoft.Windows.ActiveDirectoryCertificateServices.2016.Monitoring</ID>
+        <Version>10.0.0.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MWA6D">
+        <ID>Microsoft.Windows.ActiveDirectoryCertificateServices.2016.Discovery</ID>
+        <Version>10.0.0.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MWIIS6">
+        <ID>Microsoft.Windows.InternetInformationServices.2016</ID>
+        <Version>10.0.6.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MWS6D">
+        <ID>Microsoft.Windows.Server.2016.Discovery</ID>
+        <Version>6.0.7323.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MWSAD6D">
+        <ID>Microsoft.Windows.Server.AD.2016.Discovery</ID>
+        <Version>10.0.2.2</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="MWSAD6M">
+        <ID>Microsoft.Windows.Server.AD.2016.Monitoring</ID>
+        <Version>10.0.2.2</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SC">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>6.1.7221.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SCCUC">
+        <ID>SystemCenterCentral.Utilities.Certificates</ID>
+        <Version>1.4.3.0</Version>
+        <PublicKeyToken>e5c80663d573f08c</PublicKeyToken>
+      </Reference>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Windows">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>6.1.7221.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <TypeDefinitions>
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OCSP.Seed.Class" Accessibility="Public" Abstract="false" Base="Windows!Microsoft.Windows.LocalApplication" Hosted="true" Singleton="false" Extension="false" />
+        <ClassType ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Seed.Class" Accessibility="Public" Abstract="false" Base="Windows!Microsoft.Windows.LocalApplication" Hosted="true" Singleton="false" Extension="false" />
+        <ClassType ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.Group" Accessibility="Public" Abstract="false" Base="MSIGL!Microsoft.SystemCenter.InstanceGroup" Hosted="false" Singleton="true" Extension="false" />
+      </ClassTypes>
+    </EntityTypes>
+    <ModuleTypes>
+      <DataSourceModuleType ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Monitor.DataSource" Accessibility="Internal" Batching="false">
+        <Configuration>
+          <xsd:element minOccurs="1" type="xsd:integer" name="IntervalSeconds" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="0" type="xsd:string" name="SyncTime" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" type="xsd:integer" name="TimeoutSeconds" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int" />
+          <OverrideableParameter ID="SyncTime" Selector="$Config/SyncTime$" ParameterType="string" />
+          <OverrideableParameter ID="TimeoutSeconds" Selector="$Config/TimeoutSeconds$" ParameterType="int" />
+        </OverrideableParameters>
+        <ModuleImplementation Isolation="Any">
+          <Composite>
+            <MemberModules>
+              <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+                <Scheduler>
+                  <SimpleReccuringSchedule>
+                    <Interval Unit="Seconds">$Config/IntervalSeconds$</Interval>
+                    <SyncTime>$Config/SyncTime$</SyncTime>
+                  </SimpleReccuringSchedule>
+                  <ExcludeDates />
+                </Scheduler>
+              </DataSource>
+              <ProbeAction ID="PA" TypeID="Windows!Microsoft.Windows.PowerShellPropertyBagTriggerOnlyProbe">
+                <ScriptName>Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.EventID7031.Monitor.DS.v1004.ps</ScriptName>
+                <ScriptBody>
+#=================================================================================
+#  Check for 7031 events for OCSP services for Operational awareness
+#
+#  Author:  Kevin Justin
+#  v1.0
+#=================================================================================
+
+
+# Constants section - modify stuff here:
+#=================================================================================
+# Assign script name variable for use in event logging.  
+$ScriptName = "Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.EventID7031.Monitor.DS.v1004.ps"
+$EventID = "661"
+#=================================================================================
+
+
+# Starting Script section - All scripts get this
+#=================================================================================
+# Gather the start time of the script
+$StartTime = Get-Date
+#Set variable to be used in logging events
+$whoami = whoami
+# Load MOMScript API
+$momapi = New-Object -comObject MOM.ScriptAPI
+# Load PropertyBag function 
+$bag = $momapi.CreatePropertyBag()
+#Log script event that we are starting task
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script is starting. `n Running as ($whoami).")
+#=================================================================================
+
+
+# Begin MAIN script section
+#=================================================================================
+#$ServiceName = "OCSPSvc"
+
+$ADCSServices = @()
+$ADCSServices += "ARAdminSvc"
+
+$ADCSServices
+
+#
+#For a simple example - get files in Windows Temp:
+$date = get-date -uFormat "%Y-%m-%d"
+
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Gather Microsoft Windows Active Directory Certificate Services 2016 System Event ID 7031 Alerts for date ($date).")
+
+# Grab past 15 minutes
+$Time = [DateTime](Get-Date).AddMinutes(-15)
+
+$SystemEvents = get-eventlog -LogName "System" -after $Time `
+	| ? { ( $_.EventID -eq 7031 )`
+	} 
+
+$7031Events = foreach ( $Service in $ADCSServices )
+		{
+		$SystemEvents | ? { ($_.Message -like "*$Service*") }
+		}
+
+
+# Create array for services messages
+$ADCSServiceMessage = @()
+
+# Check if service is running
+if ( $7031Events.Count -eq 0 )
+	{
+	write-host "ZERO Quest OCSP 7031 events found in past 15 minutes"
+	}
+
+if ( $7031Events.Count -gt 0 )
+	{
+	foreach ( $Service in $ADCSServices )
+		{
+		if ( $(get-service $Service).Status -ne "running" )
+			{
+			get-service $Service; start-service $Service ; sleep 15
+		
+			#Set the condition = bad.  This represents your script finding something wrong
+			$strCondition = "Bad"
+		
+			$ADCSServiceMessage += "Microsoft Windows Active Directory Certificate Services 2016 OCSPSvc service $Service NOT running after automated service restart"
+			$momapi.LogScriptEvent($ScriptName,$EventID,0,"Microsoft Windows Active Directory Certificate Services 2016 service $Service NOT running after automated service restart")
+			#$momapi.LogScriptEvent($ScriptName,$EventID,0,"$7031ActiveRolesMessage")
+		
+			$bag.AddValue('Result','BadCondition')
+			#$bag.AddValue('Result',$strCondition)
+			$bag.AddValue('Count',$SystemEvents.count)
+			$bag.AddValue('Summary',$7031ActiveRolesMessage)
+			}
+		}
+	}
+	
+$ADCSServiceMessage
+
+
+# Gather report data
+$7031ActiveRolesMessage = @()
+
+if ( $SystemEvents.count -eq 0 )
+	{
+	$7031ActiveRolesMessage += ""
+	$7031ActiveRolesMessage += "ZERO OCSP service failures for ($date)."
+	$7031ActiveRolesMessage += ""
+	
+	$strCondition = "Good"
+	$momapi.LogScriptEvent($ScriptName,$EventID,0,"NO OCSP 7031 events found in past 15 minutes")
+	
+	$bag.AddValue('Result','GoodCondition')
+	#$bag.AddValue('Result',$strCondition)
+	$bag.AddValue('Count',$SystemEvents.count)
+	$bag.AddValue('Summary',$7031ActiveRolesMessage)
+	}
+	
+if ( $SystemEvents.count -gt 0 )
+	{
+	$7031ActiveRolesMessage += ""
+	$7031ActiveRolesMessage += "#"
+	$7031ActiveRolesMessage += "# Number of 7031 Events with OCSP service failures"
+	$7031ActiveRolesMessage += $SystemEvents.Count
+	$7031ActiveRolesMessage += ""
+	$7031ActiveRolesMessage += "# Details"
+	$7031ActiveRolesMessage += "#========================================================"
+	$7031ActiveRolesMessage += $7031Events | select TimeGenerated,Message
+	$7031ActiveRolesMessage += "#========================================================"
+	$7031ActiveRolesMessage += ""
+	
+	if ( $ADCSServiceMessage.Count -gt 0 )
+		{
+		$7031ActiveRolesMessage += "# OCSP service restart details"
+		$7031ActiveRolesMessage += "#========================================================"
+		$7031ActiveRolesMessage += $ADCSServiceMessage
+		$7031ActiveRolesMessage += "#========================================================"
+		$7031ActiveRolesMessage += ""
+		}
+	}
+	
+	$7031ActiveRolesMessage
+
+	$7031ActiveRolesMessage = $7031ActiveRolesMessage | out-string
+
+
+# Log messages to event
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"$7031ActiveRolesMessage")
+		
+# Return all bags
+$bag
+
+
+# End of script section
+#=================================================================================
+#Log an event for script ending and total execution time.
+$EndTime = Get-Date
+$ScriptTime = ($EndTime - $StartTime).TotalSeconds
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Runtime: ($ScriptTime) seconds.")
+#=================================================================================
+# End of script
+                </ScriptBody>
+                <TimeoutSeconds>$Config/TimeoutSeconds$</TimeoutSeconds>
+              </ProbeAction>
+            </MemberModules>
+            <Composition>
+              <Node ID="PA">
+                <Node ID="Scheduler" />
+              </Node>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.PropertyBagData</OutputType>
+      </DataSourceModuleType>
+    </ModuleTypes>
+    <MonitorTypes>
+      <UnitMonitorType ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.Service.Monitor.MonitorType" Accessibility="Public">
+        <MonitorTypeStates>
+          <MonitorTypeState ID="Running" NoDetection="false" />
+          <MonitorTypeState ID="NotRunning" NoDetection="false" />
+        </MonitorTypeStates>
+        <Configuration>
+          <xsd:element name="ComputerName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="ServiceName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="IntervalSeconds" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="CheckStartupType" minOccurs="0" maxOccurs="1" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="Samples" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int" />
+          <OverrideableParameter ID="CheckStartupType" Selector="$Config/CheckStartupType$" ParameterType="string" />
+          <OverrideableParameter ID="Samples" Selector="$Config/Samples$" ParameterType="int" />
+        </OverrideableParameters>
+        <MonitorImplementation>
+          <MemberModules>
+            <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.Win32ServiceInformationProvider">
+              <ComputerName>$Config/ComputerName$</ComputerName>
+              <ServiceName>$Config/ServiceName$</ServiceName>
+              <Frequency>$Config/IntervalSeconds$</Frequency>
+              <DisableCaching>true</DisableCaching>
+              <CheckStartupType>$Config/CheckStartupType$</CheckStartupType>
+            </DataSource>
+            <ProbeAction ID="Probe" TypeID="Windows!Microsoft.Windows.Win32ServiceInformationProbe">
+              <ComputerName>$Config/ComputerName$</ComputerName>
+              <ServiceName>$Config/ServiceName$</ServiceName>
+            </ProbeAction>
+            <ConditionDetection ID="ServiceRunning" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <Or>
+                  <Expression>
+                    <SimpleExpression>
+                      <ValueExpression>
+                        <XPathQuery Type="Integer">Property[@Name='StartMode']</XPathQuery>
+                      </ValueExpression>
+                      <Operator>Equal</Operator>
+                      <ValueExpression>
+                        <Value Type="Integer">4</Value>
+                        <!-- 0=BootStart 1=SystemStart 2=Automatic 3=Manual 4=Disabled -->
+                      </ValueExpression>
+                    </SimpleExpression>
+                  </Expression>
+                  <Expression>
+                    <SimpleExpression>
+                      <ValueExpression>
+                        <XPathQuery Type="Integer">Property[@Name='State']</XPathQuery>
+                      </ValueExpression>
+                      <Operator>Equal</Operator>
+                      <ValueExpression>
+                        <Value Type="Integer">4</Value>
+                        <!-- 0=Unknown 1=Stopped 2=StartPending 3=StopPending 4=Running 5=ContinuePending 6=PausePending 7=Paused 8=ServiceNotFound 9=ServerNotFound -->
+                      </ValueExpression>
+                    </SimpleExpression>
+                  </Expression>
+                </Or>
+              </Expression>
+            </ConditionDetection>
+            <ConditionDetection ID="ServiceNotRunning" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <And>
+                  <Expression>
+                    <SimpleExpression>
+                      <ValueExpression>
+                        <XPathQuery Type="Integer">Property[@Name='StartMode']</XPathQuery>
+                      </ValueExpression>
+                      <Operator>NotEqual</Operator>
+                      <ValueExpression>
+                        <Value Type="Integer">4</Value>
+                        <!-- 0=BootStart 1=SystemStart 2=Automatic 3=Manual 4=Disabled -->
+                      </ValueExpression>
+                    </SimpleExpression>
+                  </Expression>
+                  <Expression>
+                    <SimpleExpression>
+                      <ValueExpression>
+                        <XPathQuery Type="Integer">Property[@Name='State']</XPathQuery>
+                      </ValueExpression>
+                      <Operator>NotEqual</Operator>
+                      <ValueExpression>
+                        <Value Type="Integer">4</Value>
+                        <!-- 0=Unknown 1=Stopped 2=StartPending 3=StopPending 4=Running 5=ContinuePending 6=PausePending 7=Paused 8=ServiceNotFound 9=ServerNotFound -->
+                      </ValueExpression>
+                    </SimpleExpression>
+                  </Expression>
+                </And>
+              </Expression>
+              <SuppressionSettings>
+                <MatchCount>$Config/Samples$</MatchCount>
+              </SuppressionSettings>
+            </ConditionDetection>
+          </MemberModules>
+          <RegularDetections>
+            <RegularDetection MonitorTypeStateID="Running">
+              <Node ID="ServiceRunning">
+                <Node ID="DS" />
+              </Node>
+            </RegularDetection>
+            <RegularDetection MonitorTypeStateID="NotRunning">
+              <Node ID="ServiceNotRunning">
+                <Node ID="DS" />
+              </Node>
+            </RegularDetection>
+          </RegularDetections>
+          <OnDemandDetections>
+            <OnDemandDetection MonitorTypeStateID="Running">
+              <Node ID="ServiceRunning">
+                <Node ID="Probe" />
+              </Node>
+            </OnDemandDetection>
+            <OnDemandDetection MonitorTypeStateID="NotRunning">
+              <Node ID="ServiceNotRunning">
+                <Node ID="Probe" />
+              </Node>
+            </OnDemandDetection>
+          </OnDemandDetections>
+        </MonitorImplementation>
+      </UnitMonitorType>
+      <UnitMonitorType ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Monitor.MonitorType" Accessibility="Internal">
+        <MonitorTypeStates>
+          <MonitorTypeState ID="GoodCondition" NoDetection="false" />
+          <MonitorTypeState ID="BadCondition" NoDetection="false" />
+        </MonitorTypeStates>
+        <Configuration>
+          <xsd:element minOccurs="1" type="xsd:integer" name="IntervalSeconds" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="0" type="xsd:string" name="SyncTime" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element minOccurs="1" type="xsd:integer" name="TimeoutSeconds" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="IntervalSeconds" Selector="$Config/IntervalSeconds$" ParameterType="int" />
+          <OverrideableParameter ID="SyncTime" Selector="$Config/SyncTime$" ParameterType="string" />
+          <OverrideableParameter ID="TimeoutSeconds" Selector="$Config/TimeoutSeconds$" ParameterType="int" />
+        </OverrideableParameters>
+        <MonitorImplementation>
+          <MemberModules>
+            <DataSource ID="DS" TypeID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Monitor.DataSource">
+              <IntervalSeconds>$Config/IntervalSeconds$</IntervalSeconds>
+              <SyncTime>$Config/SyncTime$</SyncTime>
+              <TimeoutSeconds>$Config/TimeoutSeconds$</TimeoutSeconds>
+            </DataSource>
+            <ConditionDetection ID="GoodConditionFilter" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="String">Property[@Name='Result']</XPathQuery>
+                  </ValueExpression>
+                  <Operator>Equal</Operator>
+                  <ValueExpression>
+                    <Value Type="String">GoodCondition</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+            </ConditionDetection>
+            <ConditionDetection ID="BadConditionFilter" TypeID="System!System.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="String">Property[@Name='Result']</XPathQuery>
+                  </ValueExpression>
+                  <Operator>Equal</Operator>
+                  <ValueExpression>
+                    <Value Type="String">BadCondition</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+            </ConditionDetection>
+          </MemberModules>
+          <RegularDetections>
+            <RegularDetection MonitorTypeStateID="GoodCondition">
+              <Node ID="GoodConditionFilter">
+                <Node ID="DS" />
+              </Node>
+            </RegularDetection>
+            <RegularDetection MonitorTypeStateID="BadCondition">
+              <Node ID="BadConditionFilter">
+                <Node ID="DS" />
+              </Node>
+            </RegularDetection>
+          </RegularDetections>
+          <OnDemandDetections>
+            <OnDemandDetection MonitorTypeStateID="GoodCondition">
+              <Node ID="GoodConditionFilter">
+                <Node ID="DS" />
+              </Node>
+            </OnDemandDetection>
+            <OnDemandDetection MonitorTypeStateID="BadCondition">
+              <Node ID="BadConditionFilter">
+                <Node ID="DS" />
+              </Node>
+            </OnDemandDetection>
+          </OnDemandDetections>
+        </MonitorImplementation>
+      </UnitMonitorType>
+      <UnitMonitorType ID="Proactive.Microsoft.Windows.SingleEventLogTimer2StateMonitorType" Accessibility="Public">
+        <MonitorTypeStates>
+          <MonitorTypeState ID="EventRaised" NoDetection="false" />
+          <MonitorTypeState ID="TimerEventRaised" NoDetection="false" />
+        </MonitorTypeStates>
+        <Configuration>
+          <IncludeSchemaTypes>
+            <SchemaType>System!System.ExpressionEvaluatorSchema</SchemaType>
+          </IncludeSchemaTypes>
+          <xsd:element name="ComputerName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="LogName" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="Expression" type="ExpressionType" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="TimerWaitInSeconds" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+          <xsd:element name="MatchCount" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="MatchCount" Selector="$Config/MatchCount$" ParameterType="int" />
+        </OverrideableParameters>
+        <MonitorImplementation>
+          <MemberModules>
+            <DataSource ID="DataSource" TypeID="Windows!Microsoft.Windows.BaseEventProvider">
+              <ComputerName>$Config/ComputerName$</ComputerName>
+              <LogName>$Config/LogName$</LogName>
+            </DataSource>
+            <ProbeAction ID="OnDemandReset" TypeID="System!System.PassThroughProbe" />
+            <ConditionDetection ID="FilterCondition" TypeID="System!System.ExpressionFilter">
+              <Expression>$Config/Expression$</Expression>
+            </ConditionDetection>
+            <ConditionDetection ID="TimerCondition" TypeID="System!System.TimerCondition">
+              <TimerWaitInSeconds>$Config/TimerWaitInSeconds$</TimerWaitInSeconds>
+            </ConditionDetection>
+            <ConditionDetection ID="ThresholdNotBreached" TypeID="System!System.LogicalSet.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="Double">Value</XPathQuery>
+                  </ValueExpression>
+                  <Operator>LessEqual</Operator>
+                  <ValueExpression>
+                    <Value Type="Double">$Config/MatchCount$</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+              <EmptySet>Block</EmptySet>
+              <SetEvaluation>Any</SetEvaluation>
+            </ConditionDetection>
+            <ConditionDetection ID="ThresholdBreached" TypeID="System!System.LogicalSet.ExpressionFilter">
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="Double">Value</XPathQuery>
+                  </ValueExpression>
+                  <Operator>Greater</Operator>
+                  <ValueExpression>
+                    <Value Type="Double">$Config/MatchCount$</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+              <EmptySet>Passthrough</EmptySet>
+              <SetEvaluation>Any</SetEvaluation>
+            </ConditionDetection>
+          </MemberModules>
+          <RegularDetections>
+            <RegularDetection MonitorTypeStateID="EventRaised">
+              <Node ID="FilterCondition">
+                <Node ID="DataSource" />
+              </Node>
+            </RegularDetection>
+            <RegularDetection MonitorTypeStateID="TimerEventRaised">
+              <Node ID="TimerCondition">
+                <Node ID="FilterCondition">
+                  <Node ID="DataSource" />
+                </Node>
+              </Node>
+            </RegularDetection>
+          </RegularDetections>
+          <OnDemandDetections>
+            <OnDemandDetection MonitorTypeStateID="TimerEventRaised">
+              <Node ID="OnDemandReset" />
+            </OnDemandDetection>
+          </OnDemandDetections>
+        </MonitorImplementation>
+      </UnitMonitorType>
+    </MonitorTypes>
+  </TypeDefinitions>
+  <Monitoring>
+    <Discoveries>
+      <Discovery ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OCSP.Seed.Class.Discovery" Enabled="true" Target="Windows!Microsoft.Windows.Server.OperatingSystem" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OCSP.Seed.Class" />
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.FilteredRegistryDiscoveryProvider">
+          <ComputerName>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</ComputerName>
+          <RegistryAttributeDefinitions>
+            <RegistryAttributeDefinition>
+              <AttributeName>MonitoringSeedServiceRegKeyExists</AttributeName>
+              <Path>SYSTEM\CurrentControlSet\Services\OCSPSvc</Path>
+              <PathType>0</PathType>
+              <!-- 0=regKey 1=regValue -->
+              <AttributeType>0</AttributeType>
+              <!-- 0=CheckIfExists (Boolean) 1=treat data as (String) 2=treat data as (Integer) -->
+            </RegistryAttributeDefinition>
+          </RegistryAttributeDefinitions>
+          <Frequency>86403</Frequency>
+          <ClassId>$MPElement[Name="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OCSP.Seed.Class"]$</ClassId>
+          <InstanceSettings>
+            <Settings>
+              <Setting>
+                <Name>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Name>
+                <Value>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Value>
+              </Setting>
+              <Setting>
+                <Name>$MPElement[Name="System!System.Entity"]/DisplayName$</Name>
+                <Value>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Value>
+              </Setting>
+            </Settings>
+          </InstanceSettings>
+          <Expression>
+            <SimpleExpression>
+              <ValueExpression>
+                <XPathQuery Type="Boolean">Values/MonitoringSeedServiceRegKeyExists</XPathQuery>
+                <!-- Common options for XPathQuery Type are "Boolean" "String" "Integer" "Double" -->
+              </ValueExpression>
+              <Operator>Equal</Operator>
+              <!-- Common options for SimpleExpression Operator are "Equal" "NotEqual" "Greater" "Less" "GreaterEqual" "LessEqual" "Like" "NotLike" -->
+              <ValueExpression>
+                <Value Type="Boolean">true</Value>
+                <!-- Common options for XPathQuery Type are "Boolean" "String" "Integer" "Double" -->
+              </ValueExpression>
+            </SimpleExpression>
+          </Expression>
+        </DataSource>
+      </Discovery>
+      <Discovery ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Seed.Class.Discovery" Enabled="true" Target="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OCSP.Seed.Class" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Seed.Class" />
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.FilteredRegistryDiscoveryProvider">
+          <ComputerName>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</ComputerName>
+          <RegistryAttributeDefinitions>
+            <RegistryAttributeDefinition>
+              <AttributeName>MonitoringSeedServiceClassRegKeyExists</AttributeName>
+              <Path>SYSTEM\CurrentControlSet\Services\OCSPSvc\Responder</Path>
+              <PathType>0</PathType>
+              <!-- 0=regKey 1=regValue -->
+              <AttributeType>0</AttributeType>
+              <!-- 0=CheckIfExists (Boolean) 1=treat data as (String) 2=treat data as (Integer) -->
+            </RegistryAttributeDefinition>
+          </RegistryAttributeDefinitions>
+          <Frequency>86403</Frequency>
+          <ClassId>$MPElement[Name="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Seed.Class"]$</ClassId>
+          <InstanceSettings>
+            <Settings>
+              <Setting>
+                <Name>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Name>
+                <Value>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Value>
+              </Setting>
+              <Setting>
+                <Name>$MPElement[Name="System!System.Entity"]/DisplayName$</Name>
+                <Value>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Value>
+              </Setting>
+            </Settings>
+          </InstanceSettings>
+          <Expression>
+            <SimpleExpression>
+              <ValueExpression>
+                <XPathQuery Type="Boolean">Values/MonitoringSeedServiceClassRegKeyExists</XPathQuery>
+                <!-- Common options for XPathQuery Type are "Boolean" "String" "Integer" "Double" -->
+              </ValueExpression>
+              <Operator>Equal</Operator>
+              <!-- Common options for SimpleExpression Operator are "Equal" "NotEqual" "Greater" "Less" "GreaterEqual" "LessEqual" "Like" "NotLike" -->
+              <ValueExpression>
+                <Value Type="Boolean">true</Value>
+                <!-- Common options for XPathQuery Type are "Boolean" "String" "Integer" "Double" -->
+              </ValueExpression>
+            </SimpleExpression>
+          </Expression>
+        </DataSource>
+      </Discovery>
+      <Discovery ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.Group.Discovery" Enabled="true" Target="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.Group" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryRelationship TypeID="MSIGL!Microsoft.SystemCenter.InstanceGroupContainsEntities" />
+        </DiscoveryTypes>
+        <DataSource ID="GroupPopulationDataSource" TypeID="SC!Microsoft.SystemCenter.GroupPopulator">
+          <RuleId>$MPElement$</RuleId>
+          <GroupInstanceId>$MPElement[Name="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.Group"]$</GroupInstanceId>
+          <MembershipRules>
+            <MembershipRule>
+              <MonitoringClass>$MPElement[Name="Windows!Microsoft.Windows.Computer"]$</MonitoringClass>
+              <RelationshipClass>$MPElement[Name="MSIGL!Microsoft.SystemCenter.InstanceGroupContainsEntities"]$</RelationshipClass>
+              <Expression>
+                <RegExExpression>
+                  <ValueExpression>
+                    <Property>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Property>
+                  </ValueExpression>
+                  <Operator>MatchesRegularExpression</Operator>
+                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                </RegExExpression>
+              </Expression>
+            </MembershipRule>
+            <MembershipRule>
+              <MonitoringClass>$MPElement[Name="MWS6D!Microsoft.Windows.Server.10.0.OperatingSystem"]$</MonitoringClass>
+              <RelationshipClass>$MPElement[Name="MSIGL!Microsoft.SystemCenter.InstanceGroupContainsEntities"]$</RelationshipClass>
+              <Expression>
+                <RegExExpression>
+                  <ValueExpression>
+                    <HostProperty>
+                      <MonitoringClass>$MPElement[Name="Windows!Microsoft.Windows.Computer"]$</MonitoringClass>
+                      <Property>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Property>
+                    </HostProperty>
+                  </ValueExpression>
+                  <Operator>MatchesRegularExpression</Operator>
+                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                </RegExExpression>
+              </Expression>
+            </MembershipRule>
+            <MembershipRule>
+              <MonitoringClass>$MPElement[Name="MWS6D!Microsoft.Windows.Server.10.0.Processor"]$</MonitoringClass>
+              <RelationshipClass>$MPElement[Name="MSIGL!Microsoft.SystemCenter.InstanceGroupContainsEntities"]$</RelationshipClass>
+              <Expression>
+                <RegExExpression>
+                  <ValueExpression>
+                    <HostProperty>
+                      <MonitoringClass>$MPElement[Name="Windows!Microsoft.Windows.Computer"]$</MonitoringClass>
+                      <Property>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Property>
+                    </HostProperty>
+                  </ValueExpression>
+                  <Operator>MatchesRegularExpression</Operator>
+                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                </RegExExpression>
+              </Expression>
+            </MembershipRule>
+            <MembershipRule>
+              <MonitoringClass>$MPElement[Name="MWS6D!Microsoft.Windows.Server.10.0.LogicalDisk"]$</MonitoringClass>
+              <RelationshipClass>$MPElement[Name="MSIGL!Microsoft.SystemCenter.InstanceGroupContainsEntities"]$</RelationshipClass>
+              <Expression>
+                <RegExExpression>
+                  <ValueExpression>
+                    <HostProperty>
+                      <MonitoringClass>$MPElement[Name="Windows!Microsoft.Windows.Computer"]$</MonitoringClass>
+                      <Property>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Property>
+                    </HostProperty>
+                  </ValueExpression>
+                  <Operator>MatchesRegularExpression</Operator>
+                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                </RegExExpression>
+              </Expression>
+            </MembershipRule>
+            <MembershipRule>
+              <MonitoringClass>$MPElement[Name="SCCUC!SystemCenterCentral.Utilities.Certificates.Certificate"]$</MonitoringClass>
+              <RelationshipClass>$MPElement[Name="MSIGL!Microsoft.SystemCenter.InstanceGroupContainsEntities"]$</RelationshipClass>
+              <Expression>
+                <RegExExpression>
+                  <ValueExpression>
+                    <HostProperty>
+                      <MonitoringClass>$MPElement[Name="Windows!Microsoft.Windows.Computer"]$</MonitoringClass>
+                      <Property>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Property>
+                    </HostProperty>
+                  </ValueExpression>
+                  <Operator>MatchesRegularExpression</Operator>
+                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                </RegExExpression>
+              </Expression>
+            </MembershipRule>
+            <MembershipRule>
+              <MonitoringClass>$MPElement[Name="MWIIS6!Microsoft.Windows.InternetInformationServices.10.0.ApplicationPool"]$</MonitoringClass>
+              <RelationshipClass>$MPElement[Name="MSIGL!Microsoft.SystemCenter.InstanceGroupContainsEntities"]$</RelationshipClass>
+              <Expression>
+                <RegExExpression>
+                  <ValueExpression>
+                    <HostProperty>
+                      <MonitoringClass>$MPElement[Name="Windows!Microsoft.Windows.Computer"]$</MonitoringClass>
+                      <Property>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Property>
+                    </HostProperty>
+                  </ValueExpression>
+                  <Operator>MatchesRegularExpression</Operator>
+                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                </RegExExpression>
+              </Expression>
+            </MembershipRule>
+            <MembershipRule>
+              <MonitoringClass>$MPElement[Name="MWIIS6!Microsoft.Windows.InternetInformationServices.10.0.ServerRole"]$</MonitoringClass>
+              <RelationshipClass>$MPElement[Name="MSIGL!Microsoft.SystemCenter.InstanceGroupContainsEntities"]$</RelationshipClass>
+              <Expression>
+                <RegExExpression>
+                  <ValueExpression>
+                    <HostProperty>
+                      <MonitoringClass>$MPElement[Name="Windows!Microsoft.Windows.Computer"]$</MonitoringClass>
+                      <Property>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Property>
+                    </HostProperty>
+                  </ValueExpression>
+                  <Operator>MatchesRegularExpression</Operator>
+                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                </RegExExpression>
+              </Expression>
+            </MembershipRule>
+            <MembershipRule>
+              <MonitoringClass>$MPElement[Name="MWIIS6!Microsoft.Windows.InternetInformationServices.10.0.WebServer"]$</MonitoringClass>
+              <RelationshipClass>$MPElement[Name="MSIGL!Microsoft.SystemCenter.InstanceGroupContainsEntities"]$</RelationshipClass>
+              <Expression>
+                <RegExExpression>
+                  <ValueExpression>
+                    <HostProperty>
+                      <MonitoringClass>$MPElement[Name="Windows!Microsoft.Windows.Computer"]$</MonitoringClass>
+                      <Property>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Property>
+                    </HostProperty>
+                  </ValueExpression>
+                  <Operator>MatchesRegularExpression</Operator>
+                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                </RegExExpression>
+              </Expression>
+            </MembershipRule>
+            <MembershipRule>
+              <MonitoringClass>$MPElement[Name="MWIIS6!Microsoft.Windows.InternetInformationServices.10.0.WebSite"]$</MonitoringClass>
+              <RelationshipClass>$MPElement[Name="MSIGL!Microsoft.SystemCenter.InstanceGroupContainsEntities"]$</RelationshipClass>
+              <Expression>
+                <RegExExpression>
+                  <ValueExpression>
+                    <HostProperty>
+                      <MonitoringClass>$MPElement[Name="Windows!Microsoft.Windows.Computer"]$</MonitoringClass>
+                      <Property>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Property>
+                    </HostProperty>
+                  </ValueExpression>
+                  <Operator>MatchesRegularExpression</Operator>
+                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                </RegExExpression>
+              </Expression>
+            </MembershipRule>
+          </MembershipRules>
+        </DataSource>
+      </Discovery>
+    </Discoveries>
+    <Rules>
+      <Rule ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Alert.Rule" Enabled="true" Target="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Seed.Class" ConfirmDelivery="true" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>Alert</Category>
+        <DataSources>
+          <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.EventProvider">
+            <ComputerName>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/NetworkName$</ComputerName>
+            <LogName>System</LogName>
+            <Expression>
+              <And>
+                <Expression>
+                  <SimpleExpression>
+                    <ValueExpression>
+                      <XPathQuery Type="UnsignedInteger">EventDisplayNumber</XPathQuery>
+                    </ValueExpression>
+                    <Operator>Equal</Operator>
+                    <ValueExpression>
+                      <Value Type="UnsignedInteger">7031</Value>
+                    </ValueExpression>
+                  </SimpleExpression>
+                </Expression>
+                <Expression>
+                  <SimpleExpression>
+                    <ValueExpression>
+                      <XPathQuery Type="String">PublisherName</XPathQuery>
+                    </ValueExpression>
+                    <Operator>Equal</Operator>
+                    <ValueExpression>
+                      <Value Type="String">Health Service Script</Value>
+                    </ValueExpression>
+                  </SimpleExpression>
+                </Expression>
+                <Expression>
+                  <RegExExpression>
+                    <ValueExpression>
+                      <XPathQuery Type="String">EventDescription</XPathQuery>
+                    </ValueExpression>
+                    <Operator>ContainsSubstring</Operator>
+                    <Pattern>Rev vBrick System EventID7031 Rule Alert</Pattern>
+                  </RegExExpression>
+                </Expression>
+              </And>
+            </Expression>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="Alert" TypeID="Health!System.Health.GenerateAlert">
+            <Priority>1</Priority>
+            <Severity>1</Severity>
+            <AlertName />
+            <AlertDescription />
+            <AlertOwner />
+            <AlertMessageId>$MPElement[Name="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Alert.Rule.AlertMessage"]$</AlertMessageId>
+            <AlertParameters>
+              <AlertParameter1>$Data/EventDescription$</AlertParameter1>
+            </AlertParameters>
+            <Suppression>
+              <SuppressionValue>$Data/EventDescription$</SuppressionValue>
+            </Suppression>
+          </WriteAction>
+        </WriteActions>
+      </Rule>
+    </Rules>
+    <Monitors>
+      <UnitMonitor ID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.Monitor" Accessibility="Public" Enabled="true" Target="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Seed.Class" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.Service.Monitor.MonitorType" ConfirmDelivery="false">
+        <Category>AvailabilityHealth</Category>
+        <AlertSettings AlertMessage="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.Monitor.AlertMessage">
+          <AlertOnState>Error</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>Normal</AlertPriority>
+          <AlertSeverity>Error</AlertSeverity>
+          <AlertParameters>
+            <AlertParameter1>$Data/Context/Property[@Name='Name']$</AlertParameter1>
+            <AlertParameter2>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</AlertParameter2>
+          </AlertParameters>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="Running" MonitorTypeStateID="Running" HealthState="Success" />
+          <OperationalState ID="NotRunning" MonitorTypeStateID="NotRunning" HealthState="Error" />
+        </OperationalStates>
+        <Configuration>
+          <ComputerName />
+          <ServiceName>OCSPSvc</ServiceName>
+          <IntervalSeconds>300</IntervalSeconds>
+          <CheckStartupType>true</CheckStartupType>
+          <Samples>3</Samples>
+        </Configuration>
+      </UnitMonitor>
+      <UnitMonitor ID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.EventID7031.Monitor" Accessibility="Public" Enabled="true" Target="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Seed.Class" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Monitor.MonitorType" ConfirmDelivery="true">
+        <Category>AvailabilityHealth</Category>
+        <AlertSettings AlertMessage="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.EventID7031.Monitor.AlertMessage">
+          <AlertOnState>Warning</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>Normal</AlertPriority>
+          <AlertSeverity>MatchMonitorHealth</AlertSeverity>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="GoodCondition" MonitorTypeStateID="GoodCondition" HealthState="Success" />
+          <OperationalState ID="BadCondition" MonitorTypeStateID="BadCondition" HealthState="Warning" />
+        </OperationalStates>
+        <Configuration>
+          <IntervalSeconds>900</IntervalSeconds>
+          <SyncTime />
+          <TimeoutSeconds>120</TimeoutSeconds>
+        </Configuration>
+      </UnitMonitor>
+      <UnitMonitor ID="Microsoft.Windows.nCipherLog.EventID1.HSM.Monitor" Accessibility="Public" Enabled="true" Target="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Proactive.Microsoft.Windows.SingleEventLogTimer2StateMonitorType" ConfirmDelivery="false">
+        <Category>AvailabilityHealth</Category>
+        <AlertSettings AlertMessage="Microsoft.Windows.nCipherLog.EventID1.HSM.Monitor.AlertMessage">
+          <AlertOnState>Error</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>High</AlertPriority>
+          <AlertSeverity>Error</AlertSeverity>
+          <AlertParameters>
+            <AlertParameter1>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/PrincipalName$</AlertParameter1>
+            <AlertParameter2>$Data/EventDescription$</AlertParameter2>
+          </AlertParameters>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="TimerEventRaised" MonitorTypeStateID="TimerEventRaised" HealthState="Success" />
+          <OperationalState ID="EventRaised" MonitorTypeStateID="EventRaised" HealthState="Error" />
+        </OperationalStates>
+        <Configuration>
+          <ComputerName>$Target/Host/Property[Type="Windows!Microsoft.Windows.Computer"]/NetworkName$</ComputerName>
+          <LogName>Application</LogName>
+          <Expression>
+            <And>
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="UnsignedInteger">EventDisplayNumber</XPathQuery>
+                  </ValueExpression>
+                  <Operator>Equal</Operator>
+                  <ValueExpression>
+                    <Value Type="UnsignedInteger">1</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+              <Expression>
+                <SimpleExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="String">PublisherName</XPathQuery>
+                  </ValueExpression>
+                  <Operator>Equal</Operator>
+                  <ValueExpression>
+                    <Value Type="String">nCipherLog</Value>
+                  </ValueExpression>
+                </SimpleExpression>
+              </Expression>
+              <Expression>
+                <RegExExpression>
+                  <ValueExpression>
+                    <XPathQuery Type="String">EventDescription</XPathQuery>
+                  </ValueExpression>
+                  <Operator>MatchesRegularExpression</Operator>
+                  <Pattern>^(Hardserver.*A Connection attempt failed.*)$</Pattern>
+                </RegExExpression>
+              </Expression>
+            </And>
+          </Expression>
+          <TimerWaitInSeconds>3600</TimerWaitInSeconds>
+          <MatchCount>5</MatchCount>
+        </Configuration>
+      </UnitMonitor>
+    </Monitors>
+    <Recoveries>
+      <Recovery ID="Recovery.Task.Microsoft.Windows.CertificateServices.CARole.2016" Accessibility="Public" Enabled="true" Target="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Monitor="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcMonitor" ResetMonitor="true" ExecuteOnState="Error" Remotable="true" Timeout="300">
+        <Category>Custom</Category>
+        <WriteAction ID="CertificateServices.Recovery.Task.WA" TypeID="System!System.CommandExecuter">
+          <ApplicationName>net start</ApplicationName>
+          <WorkingDirectory>C:\windows\system32</WorkingDirectory>
+          <CommandLine>certsvc</CommandLine>
+          <TimeoutSeconds>60</TimeoutSeconds>
+          <RequireOutput>true</RequireOutput>
+        </WriteAction>
+      </Recovery>
+      <Recovery ID="Recovery.Task.Microsoft.Windows.OnlineResponderService.CARole.2016" Accessibility="Public" Enabled="true" Target="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Seed.Class" Monitor="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.Monitor" ResetMonitor="true" ExecuteOnState="Error" Remotable="true" Timeout="300">
+        <Category>Custom</Category>
+        <WriteAction ID="CertificateServices.Recovery.Task.WA" TypeID="System!System.CommandExecuter">
+          <ApplicationName>net start</ApplicationName>
+          <WorkingDirectory>C:\windows\system32</WorkingDirectory>
+          <CommandLine>OCSPSvc</CommandLine>
+          <TimeoutSeconds>60</TimeoutSeconds>
+          <RequireOutput>true</RequireOutput>
+        </WriteAction>
+      </Recovery>
+    </Recoveries>
+    <Overrides>
+      <MonitorPropertyOverride ID="Override.AutoResolve.Microsoft.Windows.CertificateServices.CARole.2016.ErrorEventMonitor" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Monitor="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcErrorEventMonitor" Property="AutoResolve">
+        <Value>true</Value>
+      </MonitorPropertyOverride>
+      <MonitorPropertyOverride ID="Override.AutoResolve.Microsoft.Windows.CertificateServices.CARole.2016.WarningEventMonitor" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Monitor="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcWarningEventMonitor" Property="AutoResolve">
+        <Value>true</Value>
+      </MonitorPropertyOverride>
+      <MonitorPropertyOverride ID="Override.AutoResolve.Microsoft.Windows.CertificateServices.CARole.2016.OCSPErrorEventMonitor" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Monitor="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.OCSPErrorEventMonitor" Property="AutoResolve">
+        <Value>true</Value>
+      </MonitorPropertyOverride>
+      <MonitorPropertyOverride ID="Override.AutoResolve.Microsoft.Windows.CertificateServices.CARole.2016.OCSPWarningEventMonitor" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Monitor="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.OCSPWarningEventMonitor" Property="AutoResolve">
+        <Value>true</Value>
+      </MonitorPropertyOverride>
+      <MonitorPropertyOverride ID="Override.AutoResolve.Microsoft.Windows.CertificateServices.CARole.2016.ServiceMonitor" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Monitor="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcMonitor" Property="AutoResolve">
+        <Value>true</Value>
+      </MonitorPropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID10" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.10" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID100" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.100" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID101" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.101" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID102" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.102" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID103" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.103" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID104" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.104" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID105" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.105" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID106" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.106" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID107" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.107" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID108" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.108" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID109" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.109" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID127" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.127" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID128" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.128" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID129" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.129" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID131" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.131" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID132" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.132" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID22" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.22" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID23" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.23" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID25" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.25" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID26" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.26" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID27" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.27" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID29" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.29" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID3" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.3" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID44" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.44" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID45" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.45" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID46" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.46" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID48" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.48" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID52" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.52" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID53" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.53" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID54" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.54" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID55" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.55" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID56" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.56" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID57" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.57" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID58" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.58" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID6" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.6" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID60" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.60" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID62" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.62" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID64" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.64" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID65" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.65" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID66" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.66" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID67" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.67" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID68" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.68" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID69" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.69" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID7" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.7" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID71" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.71" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID72" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.72" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID73" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.73" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID74" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.74" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID75" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.75" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID76" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.76" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID77" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.77" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID78" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.78" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID79" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.79" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID8" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.8" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID80" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.80" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID81" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.81" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID82" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.82" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID83" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.83" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID84" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.84" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID85" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.85" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID88" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.88" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID91" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.91" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID93" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.93" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID99" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.99" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.17" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.17" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.18" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.18" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.20" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.20" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.22" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.22" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.23" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.23" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.25" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.25" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.26" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.26" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.27" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.27" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.29" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.29" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.31" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.31" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.33" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.33" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.34" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.34" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.35" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.35" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.RevocationProvider.16" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.RevocationProvider.16" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.RevocationProvider.17" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.RevocationProvider.17" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.RevocationProvider.18" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.RevocationProvider.18" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.WebProxy.18" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.18" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.WebProxy.19" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.19" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.WebProxy.20" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.20" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <RulePropertyOverride ID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.WebProxy.21" Context="MWA6D!Microsoft.Windows.CertificateServices.CARole.2016" Enforced="false" Rule="MWA6M!Microsoft.Windows.CertificateServices.CARole.2016.CertSvcEvents.21" Property="Enabled">
+        <Value>false</Value>
+      </RulePropertyOverride>
+      <MonitorConfigurationOverride ID="Override.Microsoft.Windows.Server.2016.AD.Configuration.ReplicationPartnerCount.Monitor" Context="MWSAD6D!Microsoft.Windows.Server.2016.AD.DomainControllerRole" Enforced="false" Monitor="MWSAD6M!Microsoft.Windows.Server.2016.AD.Configuration.ReplicationPartnerCount.Monitor" Parameter="ConnectionsThresholdWarning">
+        <Value>55</Value>
+      </MonitorConfigurationOverride>
+    </Overrides>
+  </Monitoring>
+  <Presentation>
+    <StringResources>
+      <StringResource ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Alert.Rule.AlertMessage" />
+      <StringResource ID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.Monitor.AlertMessage" />
+      <StringResource ID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.EventID7031.Monitor.AlertMessage" />
+      <StringResource ID="Microsoft.Windows.nCipherLog.EventID1.HSM.Monitor.AlertMessage" />
+    </StringResources>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="false">
+      <DisplayStrings>
+        <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.Monitoring.Addendum">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 Monitoring Addendum</Name>
+          <Description> Management Pack created to turn OFF all rules for ADCS, as the monitors look at the same event source
+v1.0.0.4  18 Jul 2023 - Updated DS script name
+v1.0.0.3   9 Jun 2022 - nCipherLog monitor
+v1.0.0.2  10 May 2022 - Updates for OcspSvc service and recovery task monitoring
+v1.0.0.1  10 Mar 2022 - Updated Certificate override		  
+v1.0.0.0  10 Jun 2020 - Created for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory) customizations of the sealed pack.
+			Includes overrides for rules, new rules for frequent CA events</Description>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OCSP.Seed.Class">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Role Seed Class</Name>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Seed.Class">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service Seed Class</Name>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.Group">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP subscription components</Name>
+          <Description>Microsoft Windows Active Directory Certificate Services OCSP application subscription components Group targeted Discovery</Description>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Monitor.DataSource">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service Event ID 7031 Alerts Datasource</Name>
+          <Description>This datasource generates Event ID 7031 Alerts</Description>
+        </DisplayString>
+
+        <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OCSP.Seed.Class.Discovery">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Role Seed Class Discovery</Name>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Seed.Class.Discovery">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service Seed Class Discovery</Name>
+        </DisplayString>
+
+        <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.Service.Monitor.MonitorType">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service MonitorType</Name>
+          <Description>This MonitorType is adds service monitor functionality</Description>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Monitor.MonitorType">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service MonitorType</Name>
+          <Description>This MonitorType looks at System EventID 7031 for OCSPsvc alerts</Description>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.Microsoft.Windows.SingleEventLogTimer2StateMonitorType">
+          <Name>Proactive Microsoft Windows ADCS EventLogTimer2State MonitorType</Name>
+          <Description>This MonitorType looks at Events for alerts</Description>
+        </DisplayString>
+		
+        <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Alert.Rule">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service EventID7031 Rule</Name>
+          <Description>Created to check for System Event ID 7031's tailored for Microsoft Windows Active Directory Certificate Services 2016 OCSP Service down issues</Description>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Alert.Rule.AlertMessage">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service System EventID7031 Rule Alert</Name>
+          <Description>{0}</Description>
+        </DisplayString>
+
+        <DisplayString ElementID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.Monitor">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service Monitor</Name>
+          <Description>Check for Microsoft Windows Active Directory Certificate Services 2016 OCSP Service running</Description>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.Monitor" SubElementID="Running">
+          <Name>Running</Name>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.Monitor" SubElementID="NotRunning">
+          <Name>Not Running</Name>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.Monitor.AlertMessage">
+          <Name>Microsoft Windows OnlineResponderService OCSPSvc Service Monitor alert</Name>
+          <Description>{0}</Description>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.EventID7031.Monitor">
+          <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP System Event ID 7031 Event Monitor</Name>
+          <Description>Check for Microsoft Windows Active Directory Certificate Services 2016 OCSP Service running in System Event Log</Description>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.EventID7031.Monitor.AlertMessage">
+          <Name>Microsoft Windows OnlineResponderService OCSPSvc Service System Event ID 7031 event alert</Name>
+          <Description>{0}</Description>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.nCipherLog.EventID1.HSM.Monitor">
+          <Name>Microsoft Windows Active Directory Certificate Services nCipherLog HSM appliance disconnected monitor</Name>
+          <Description>This monitor checks Application Event Log, Event ID 1 connection attempt failed events.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Microsoft.Windows.nCipherLog.EventID1.HSM.Monitor.AlertMessage">
+          <Name>Microsoft Windows Active Directory Certificate Services nCipherLog HSM appliance disconnected</Name>
+          <Description>Application Event Log, Event ID 1 details:
+		  {0}</Description>
+        </DisplayString>
+
+        <DisplayString ElementID="Recovery.Task.Microsoft.Windows.CertificateServices.CARole.2016">
+          <Name>Restart Certificate Services (certsvc)</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Recovery.Task.Microsoft.Windows.OnlineResponderService.CARole.2016">
+          <Name>Restart Certificate Services 2016 (OCSPSvc)</Name>
+          <Description>Created 10 May 2022 for Windows Server 2016+ ADCS OCSPSvc (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+
+        <DisplayString ElementID="Override.AutoResolve.Microsoft.Windows.CertificateServices.CARole.2016.ErrorEventMonitor">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.AutoResolve.Microsoft.Windows.CertificateServices.CARole.2016.WarningEventMonitor">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.AutoResolve.Microsoft.Windows.CertificateServices.CARole.2016.OCSPErrorEventMonitor">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.AutoResolve.Microsoft.Windows.CertificateServices.CARole.2016.OCSPWarningEventMonitor">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.AutoResolve.Microsoft.Windows.CertificateServices.CARole.2016.ServiceMonitor">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID10">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID100">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID101">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID102">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID103">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID104">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID105">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID106">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID107">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID108">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID109">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID127">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID128">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID129">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID131">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID132">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID22">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID23">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID25">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID26">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID27">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID29">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID3">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID44">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID45">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID46">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID48">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID52">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID53">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID54">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID55">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID56">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID57">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID58">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID6">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID60">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID62">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID64">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID65">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID66">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID67">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID68">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID69">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID7">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID71">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID72">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID73">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID74">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID75">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID76">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID77">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID78">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID79">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID8">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID80">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID81">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID82">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID83">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID84">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID85">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID88">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID91">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID93">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.EventID99">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.17">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.18">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.20">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.22">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.23">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.25">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.26">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.27">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.29">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.31">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.33">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.34">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.35">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.RevocationProvider.16">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.RevocationProvider.17">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.RevocationProvider.18">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.WebProxy.18">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.WebProxy.19">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.WebProxy.20">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Disable.Microsoft.Windows.CertificateServices.CARole.2016.OCSPEvents.WebProxy.21">
+          <Name>NotUsed</Name>
+          <Description>Created 27 Jan 2020 for Windows Server 2016+ ADCS (Certificate Services monitoring for Active Directory)</Description>
+        </DisplayString>
+        <DisplayString ElementID="Override.Microsoft.Windows.Server.2016.AD.Configuration.ReplicationPartnerCount.Monitor">
+          <Name>NotUsed</Name>
+          <Description>3 Mar 2022 - KWJ - Overriding Replication Partner Count monitor to reflect AD design</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>

@@ -1,0 +1,24 @@
+#=============================================================
+# Active Directory Certificate Services Addendum updates
+#=============================================================
+
+
+
+#=============================================================
+# Need to update for the DS and WA report tasks
+#=============================================================
+
+##CAServer##
+##CERTIFICATESERVERS##
+
+
+# Update for SharePoint hybrid servers (VM, Premise, Cloud IaaS)
+#=============================================================
+Create simplified expression that encompasses these roles, and find/replace in the addendum.xml
+
+# Example in the pack:
+#==============================
+<Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+
+
+
