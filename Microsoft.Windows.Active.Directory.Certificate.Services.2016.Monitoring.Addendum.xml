@@ -2,7 +2,7 @@
   <Manifest>
     <Identity>
       <ID>Microsoft.Windows.Active.Directory.Certificate.Services.2016.Monitoring.Addendum</ID>
-      <Version>1.0.0.4</Version>
+      <Version>1.0.0.8</Version>
     </Identity>
     <Name>Microsoft Windows Active Directory Certificate Services 2016 Monitoring Addendum</Name>
     <References>
@@ -28,7 +28,7 @@
       </Reference>
       <Reference Alias="MWIIS6">
         <ID>Microsoft.Windows.InternetInformationServices.2016</ID>
-        <Version>10.0.6.0</Version>
+        <Version>10.0.0.0</Version>
         <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
       </Reference>
       <Reference Alias="MWS6D">
@@ -38,12 +38,12 @@
       </Reference>
       <Reference Alias="MWSAD6D">
         <ID>Microsoft.Windows.Server.AD.2016.Discovery</ID>
-        <Version>10.0.2.2</Version>
+        <Version>10.0.0.0</Version>
         <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
       </Reference>
       <Reference Alias="MWSAD6M">
         <ID>Microsoft.Windows.Server.AD.2016.Monitoring</ID>
-        <Version>10.0.2.2</Version>
+        <Version>10.0.0.0</Version>
         <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
       </Reference>
       <Reference Alias="SC">
@@ -101,10 +101,10 @@
                 </Scheduler>
               </DataSource>
               <ProbeAction ID="PA" TypeID="Windows!Microsoft.Windows.PowerShellPropertyBagTriggerOnlyProbe">
-                <ScriptName>Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.EventID7031.Monitor.DS.v1004.ps</ScriptName>
+                <ScriptName>Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.EventID7031.Monitor.DS.v1008.ps1</ScriptName>
                 <ScriptBody>
 #=================================================================================
-#  Check for 7031 events for OCSP services for Operational awareness
+#  Check for 7031 events for Microsoft Windows Active Directory Certificate Services 2016 OnlineResponderService EventID7031 events
 #
 #  Author:  Kevin Justin
 #  v1.0
@@ -113,8 +113,8 @@
 
 # Constants section - modify stuff here:
 #=================================================================================
-# Assign script name variable for use in event logging.  
-$ScriptName = "Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.EventID7031.Monitor.DS.v1004.ps"
+# Assign script name variable for use in event logging.
+$ScriptName = "Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.EventID7031.Monitor.DS.v1008.ps1"
 $EventID = "661"
 #=================================================================================
 
@@ -127,19 +127,19 @@ $StartTime = Get-Date
 $whoami = whoami
 # Load MOMScript API
 $momapi = New-Object -comObject MOM.ScriptAPI
-# Load PropertyBag function 
+# Load PropertyBag function
 $bag = $momapi.CreatePropertyBag()
 #Log script event that we are starting task
-$momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script is starting. `n Running as ($whoami).")
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Script is starting. `n Running as ($whoami).")
 #=================================================================================
 
 
 # Begin MAIN script section
 #=================================================================================
-#$ServiceName = "OCSPSvc"
+$ServiceName = "OCSPSvc"
 
 $ADCSServices = @()
-$ADCSServices += "ARAdminSvc"
+$ADCSServices += "OCSPSvc"
 
 $ADCSServices
 
@@ -147,14 +147,14 @@ $ADCSServices
 #For a simple example - get files in Windows Temp:
 $date = get-date -uFormat "%Y-%m-%d"
 
-$momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Gather Microsoft Windows Active Directory Certificate Services 2016 System Event ID 7031 Alerts for date ($date).")
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Gather Microsoft Windows Active Directory Certificate Services 2016 System Event ID 7031 Alerts for date ($date).")
 
 # Grab past 15 minutes
 $Time = [DateTime](Get-Date).AddMinutes(-15)
 
 $SystemEvents = get-eventlog -LogName "System" -after $Time `
 	| ? { ( $_.EventID -eq 7031 )`
-	} 
+	}
 
 $7031Events = foreach ( $Service in $ADCSServices )
 		{
@@ -168,7 +168,7 @@ $ADCSServiceMessage = @()
 # Check if service is running
 if ( $7031Events.Count -eq 0 )
 	{
-	write-host "ZERO Quest OCSP 7031 events found in past 15 minutes"
+	write-host "ZERO Microsoft Windows Active Directory Certificate Services 2016 7031 events found in past 15 minutes"
 	}
 
 if ( $7031Events.Count -gt 0 )
@@ -178,14 +178,14 @@ if ( $7031Events.Count -gt 0 )
 		if ( $(get-service $Service).Status -ne "running" )
 			{
 			get-service $Service; start-service $Service ; sleep 15
-		
+
 			#Set the condition = bad.  This represents your script finding something wrong
 			$strCondition = "Bad"
-		
+
 			$ADCSServiceMessage += "Microsoft Windows Active Directory Certificate Services 2016 OCSPSvc service $Service NOT running after automated service restart"
 			$momapi.LogScriptEvent($ScriptName,$EventID,0,"Microsoft Windows Active Directory Certificate Services 2016 service $Service NOT running after automated service restart")
 			#$momapi.LogScriptEvent($ScriptName,$EventID,0,"$7031ActiveRolesMessage")
-		
+
 			$bag.AddValue('Result','BadCondition')
 			#$bag.AddValue('Result',$strCondition)
 			$bag.AddValue('Count',$SystemEvents.count)
@@ -193,7 +193,7 @@ if ( $7031Events.Count -gt 0 )
 			}
 		}
 	}
-	
+
 $ADCSServiceMessage
 
 
@@ -203,23 +203,23 @@ $7031ActiveRolesMessage = @()
 if ( $SystemEvents.count -eq 0 )
 	{
 	$7031ActiveRolesMessage += ""
-	$7031ActiveRolesMessage += "ZERO OCSP service failures for ($date)."
+	$7031ActiveRolesMessage += "ZERO Microsoft Windows Active Directory Certificate Services 2016 7031 events found ($date)."
 	$7031ActiveRolesMessage += ""
-	
+
 	$strCondition = "Good"
-	$momapi.LogScriptEvent($ScriptName,$EventID,0,"NO OCSP 7031 events found in past 15 minutes")
-	
+	$momapi.LogScriptEvent($ScriptName,$EventID,0,"NO Microsoft Windows Active Directory Certificate Services 2016 7031 events found in past 15 minutes")
+
 	$bag.AddValue('Result','GoodCondition')
 	#$bag.AddValue('Result',$strCondition)
 	$bag.AddValue('Count',$SystemEvents.count)
 	$bag.AddValue('Summary',$7031ActiveRolesMessage)
 	}
-	
+
 if ( $SystemEvents.count -gt 0 )
 	{
 	$7031ActiveRolesMessage += ""
 	$7031ActiveRolesMessage += "#"
-	$7031ActiveRolesMessage += "# Number of 7031 Events with OCSP service failures"
+	$7031ActiveRolesMessage += "# Number of 7031 Events with Quest OneIdentity AR ActiveRoles service failures"
 	$7031ActiveRolesMessage += $SystemEvents.Count
 	$7031ActiveRolesMessage += ""
 	$7031ActiveRolesMessage += "# Details"
@@ -227,17 +227,17 @@ if ( $SystemEvents.count -gt 0 )
 	$7031ActiveRolesMessage += $7031Events | select TimeGenerated,Message
 	$7031ActiveRolesMessage += "#========================================================"
 	$7031ActiveRolesMessage += ""
-	
+
 	if ( $ADCSServiceMessage.Count -gt 0 )
 		{
-		$7031ActiveRolesMessage += "# OCSP service restart details"
+		$7031ActiveRolesMessage += "# Quest OneIdentity AR ActiveRoles service restart details"
 		$7031ActiveRolesMessage += "#========================================================"
 		$7031ActiveRolesMessage += $ADCSServiceMessage
 		$7031ActiveRolesMessage += "#========================================================"
 		$7031ActiveRolesMessage += ""
 		}
 	}
-	
+
 	$7031ActiveRolesMessage
 
 	$7031ActiveRolesMessage = $7031ActiveRolesMessage | out-string
@@ -245,9 +245,348 @@ if ( $SystemEvents.count -gt 0 )
 
 # Log messages to event
 $momapi.LogScriptEvent($ScriptName,$EventID,0,"$7031ActiveRolesMessage")
-		
+
 # Return all bags
 $bag
+
+
+# End of script section
+#=================================================================================
+#Log an event for script ending and total execution time.
+$EndTime = Get-Date
+$ScriptTime = ($EndTime - $StartTime).TotalSeconds
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Script Completed. `n Script Runtime: ($ScriptTime) seconds.")
+#=================================================================================
+# End of script
+                </ScriptBody>
+                <TimeoutSeconds>$Config/TimeoutSeconds$</TimeoutSeconds>
+              </ProbeAction>
+            </MemberModules>
+            <Composition>
+              <Node ID="PA">
+                <Node ID="Scheduler" />
+              </Node>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.PropertyBagData</OutputType>
+      </DataSourceModuleType>
+      <DataSourceModuleType ID="Proactive.DailyTasks.ADCSAlerts.Close.Script.DataSource" Accessibility="Internal" Batching="false">
+        <Configuration>
+          <xsd:element minOccurs="1" type="xsd:integer" name="TimeoutSeconds" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="TimeoutSeconds" Selector="$Config/TimeoutSeconds$" ParameterType="int" />
+        </OverrideableParameters>
+        <ModuleImplementation Isolation="Any">
+          <Composite>
+            <MemberModules>
+              <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+                <Scheduler>
+                  <WeeklySchedule>
+                    <Windows>
+                      <Daily>
+                        <Start>06:17</Start>
+                        <End>06:37</End>
+                        <DaysOfWeekMask>62</DaysOfWeekMask>
+                      </Daily>
+                    </Windows>
+                  </WeeklySchedule>
+                  <ExcludeDates />
+                </Scheduler>
+              </DataSource>
+              <ProbeAction ID="PA" TypeID="Windows!Microsoft.Windows.PowerShellPropertyBagTriggerOnlyProbe">
+                <ScriptName>Proactive.DailyTasks.ADCSAlerts.Close.Script.Datasource.v1008.ps1</ScriptName>
+                <ScriptBody>
+#=================================================================================
+#  Script to gather ADCS alerts and close via on demand task
+#
+#  Author: Kevin Justin
+#  v1.0
+#=================================================================================
+
+
+# Constants section - modify stuff here:
+#=================================================================================
+# Assign script name variable for use in event logging.
+# ScriptName should be the same as the ID of the module that the script is contained in
+$ScriptName = "Proactive.DailyTasks.ADCSAlerts.Close.Script.Datasource.v1008.ps1"
+$EventID = "550"
+#=================================================================================
+
+
+# Starting Script section - All scripts get this
+#=================================================================================
+# Gather the start time of the script
+$StartTime = Get-Date
+#Set variable to be used in logging events
+$whoami = whoami
+# Load MOMScript API
+$momapi = New-Object -comObject MOM.ScriptAPI
+#Log script event that we are starting task
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Script is starting. `n Running as ($whoami).")
+#=================================================================================
+
+
+# PropertyBag Script section - Monitoring scripts get this
+#=================================================================================
+# Load SCOM PropertyBag function
+$bag = $momapi.CreatePropertyBag()
+#=================================================================================
+
+
+# Begin MAIN script section
+#=================================================================================
+
+#For a simple example - get files in Windows Temp:
+$date = get-date -uFormat "%Y-%m-%d"
+$Age = [DateTime](Get-Date).AddDays(-1)
+
+# Grab past 24 hours
+if ( (get-date).DayOfWeek -ne "Monday" )
+	{
+	$Time = [DateTime](Get-Date).AddDays(-1)
+	}
+if ( (get-date).DayOfWeek -eq "Monday" )
+	{
+	$Time = [DateTime](Get-Date).AddDays(-3)
+	}
+
+
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Gather Proactive DailyTasks ADCS Monitors close automation for ($date).")
+$Message = "Proactive DailyTasks ADCS Monitors close automation for ($date)."
+
+
+# Gather AD alerts
+## Grab the MP, get the Monitors and Rules from the MP, then grab all alerts found inside the Monitors/Rules
+$SCOMCoreMP = Get-SCOMManagementPack -DisplayName "Windows Server 2016+ Active Directory Certificate Services Monitoring"
+
+$SCOMCoreRules = $SCOMCoreMP.GetRules()
+$SCOMCoreMonitors = $SCOMCoreMP.GetMonitors()
+
+$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts.Count
+
+$SCOMCoreRuleAlerts = Get-SCOMAlert | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreRuleAlerts.Count
+
+$SCOMCoreMonitorAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreMonitorAlerts.Count
+
+$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts.Count
+$Test = $SCOMCoreReportAlerts.Count
+
+
+$OpenADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -ne "255"}
+$OpenADCSAlerts.Count
+$ClosedADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -eq "255"}
+$ClosedADCSAlerts.Count
+
+$ADCSAlerts = $SCOMCoreReportAlerts | select MonitoringObjectDisplayName,Description
+
+
+if ( $Test -eq 0 )
+	{
+	$Message = "ZERO ADCS 2016+ alerts to close for ($date)"
+	$momapi.LogScriptEvent($ScriptName,$EventID,0,"ZERO ADCS 2016+ alerts to close for ($date).")
+	}
+
+if ( $Test -gt 0 )
+	{
+	#
+	# Build report
+
+$ADCSComponentMessage = @()
+$ADCSComponentMessage += ""
+$ADCSComponentMessage += $Message
+$ADCSComponentMessage += ""
+$ADCSComponentMessage += "# ADCS Monitors auto-closed"
+$ADCSComponentMessage += "#============================================================"
+$ADCSComponentMessage += "# Total ADCS alerts = $($SCOMCoreReportAlerts.Count)"
+$ADCSComponentMessage += "#"
+$ADCSComponentMessage += "# Open alerts = $($OpenADCSAlerts.Count)"
+$ADCSComponentMessage += "# Closed alerts = $($ClosedADCSAlerts.Count)"
+$ADCSComponentMessage += "#"
+$ADCSComponentMessage += "# Automation closed alerts = $($OpenADCSAlerts.Count)"
+$ADCSComponentMessage += "#========================================="
+$ADCSComponentMessage += ""
+
+$ADCSComponentMessage
+
+$ADCSComponentMessage = $ADCSComponentMessage | out-string
+
+
+# Log data event before resetting monitors
+#============================================================
+  $Result = "GOOD"
+  $Message = "Proactive DailyTasks ADCS Monitors close automation for ($date)"
+
+  $momapi.LogScriptEvent($ScriptName,$EventID,0,"Proactive DailyTasks ADCS Monitors close automation for ($date). `n `n$ADCSComponentMessage")
+
+#$bag.AddValue('Result',$Result)
+$bag.AddValue('Count',$Test)
+$bag.AddValue('Message',$Message)
+$bag.AddValue('Summary',$ADCSComponentMessage)
+
+# Return all bags
+$bag
+
+
+
+#=================================================================================
+# Reset Monitors Script base code modified
+# Put ps1 in mgmtpacks folder
+# https://sc.scomurr.com/scom-2012-monitor-reset-cleaning-up-the-environment/
+#	Download
+# https://gallery.technet.microsoft.com/SCOM-2012-Batch-reset-63a17534
+
+#Alternate
+#https://gallery.technet.microsoft.com/scriptcenter/Auto-reset-script-for-d8b775ca
+
+# Changed up logic to sort unique classes in mgmnt pack families.
+# Added Age variable for monitors thanks to Aris Somatis - $Age specified in top level variables
+# Cycling through monitors made reset loop huge ~650 monitors when only ~50 classes
+# New logic reduced runtime from 8 minutes to roughly 8 seconds
+#=================================================================================
+
+# Write event for rule closure
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Proactive DailyTasks ADCS Monitors reset started for ($date). `n `n $($ADCSMonitorsToAutoClose.Count) ")
+
+
+if ( $SCOMCoreReportAlerts.Count -gt 0 )
+	{
+	# Get ADCS classes
+		$ADCSLibrary = Get-SCOMManagementPack -name "Microsoft.Windows.CertificateServices.Library"
+			#get-scomclass -ManagementPack $ADLibrary
+		$ADCSMonitoring = $SCOMCoreMP
+			#get-scomclass -ManagementPack $SCOMCoreMP | fl DisplayName,Name,ID
+		$ADCSDiscovery = Get-SCOMManagementPack -name Microsoft.Windows.ActiveDirectoryCertificateServices.2016.Discovery
+			#get-scomclass -ManagementPack $ADDiscovery | fl DisplayName,Name,ID
+
+	# ADCS pack naming
+	$ADCSClasses = @(Get-SCOMClass -ManagementPack $ADLibrary; Get-SCOMClass -ManagementPack $ADDiscovery; )
+	$ADCSClass = $ADCSClasses | sort -property Name -uniq
+	# Debug
+	$ADCSClass.Count
+
+	# Set up monitor objects to reset
+	foreach ($Class in $ADCSClass)
+		{
+		$ActiveMonitors = @(Get-SCOMClassInstance -Class $Class | ? { ($_.healthstate -ne 'Success') -AND ( $_.healthstate -ne 'Uninitialized') -AND ($_.IsAvailable -eq $true) } )
+		# Debug
+		$ActiveMonitors.Count
+		# $ActiveMonitors | fl -property *
+		write-host "Found" $ActiveMonitors.Count "unhealthy monitors for class" $Class
+		foreach ( $UnhealthyOLDMonitor in $ActiveMonitors )
+			{
+			#if ( $UnhealthyOLDMonitor.AvailabilityLastModified -lt $Age )
+			if ( $UnhealthyOLDMonitor.StateLastModified -lt $Age )
+				{
+				#$UnhealthyMonitors += $ActiveMonitors.Count
+				#UnhealthyOLDMonitor | select AvailabilityLastModified,Path,DisplayName
+				#$UnhealthyOLDMonitor.Count
+				#write-host "Found" + $UnhealthyOLDMonitor.Count + "unhealthy monitor beyond" $Age "days."
+				#write-host ""
+				if ( $ActiveMonitors.Count -gt 0)
+					{
+					foreach ( $ActiveMonitor in $UnhealthyOLDMonitor )
+						{
+						# Debug
+						$ActiveMonitor.ID
+						write-host " Resetting Health State on '" + $ActiveMonitor.FullName + "'" 
+						write-host ""
+						$ActiveMonitor.ResetMonitoringState($ActiveMonitor)
+						}
+					}
+				}
+			}
+		}
+	# Debug
+	#$MonitorClass | fl -property *
+	#$MonitorClass | select DisplayName,ID
+	}
+
+
+# Debug Write event for rule closure
+# $UnhealthyMonitors = $($UnhealthyMonitors | measure-object -sum).sum
+#$momapi.LogScriptEvent($ScriptName,$EventID,0,"Proactive ADCS monitors auto-closed on ($date). `n `n $($ADCSMonitorsToAutoClose.Count) ")
+# Write event for rule closure
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Proactive DailyTasks ADCS monitor reset completed for ($date)")
+
+
+
+# Unhealthy rules
+#
+# (Rules) Alerts to auto close after reset monitor
+# $SCOMCoreRuleAlerts | Resolve-SCOMAlert
+$SCOMCoreRules.DisplayName | Resolve-SCOMAlert -Comment "Closing daily alert flood after report alert generated - ADCS Addendum automation DS"
+
+$ADRulesToClose = @()
+
+$ADRulesToClose +=
+$ADRulesToClose += "A dll cannot be loaded because the software was incorrectly installed"
+$ADRulesToClose += "A DNS server used by this server for name resolution*"
+$ADRulesToClose += "A resource record for the computer name of the DC*"
+$ADRulesToClose += "A RSoP (Resultant Set of Policies) error occurred"
+$ADRulesToClose += "A user from a different forest*"
+$ADRulesToClose += "A well known *"
+$ADRulesToClose += "Account creation will *"
+$ADRulesToClose += "Account Name Not Unique"
+$ADRulesToClose += "Accounts with the same SID*"
+$ADRulesToClose += "Active Directory Web Services *"
+$ADRulesToClose += "ADCS*"
+$ADRulesToClose += "AD Database Size Collection"
+$ADRulesToClose += "AD Replication Queue"
+$ADRulesToClose += "An account *"
+$ADRulesToClose += "An attempt to *"
+$ADRulesToClose += "Change Password on KRBTGT Account Failed"
+$ADRulesToClose += "Corrupt Credentials"
+$ADRulesToClose += "Domain Operation Mode has been changed to Native Mode"
+$ADRulesToClose += "Duplicate account names were detected - one account has been renamed"
+$ADRulesToClose += "Duplicate User Principal Names have been detected"
+$ADRulesToClose += "Free Disk Space * Collection"
+$ADRulesToClose += "Global Catalog Search Response Time Collection"
+$ADRulesToClose += "Group policy processing aborted - cannot determine site"
+$ADRulesToClose += "Invalid Forwarded AS Request"
+$ADRulesToClose += "Invalid Policy Data"
+$ADRulesToClose += "Machine account policy failure - *"
+$ADRulesToClose += "Memory Allocation Error - the system may be overloaded"
+$ADRulesToClose += "No input provider to sync time"
+$ADRulesToClose += "One or more of the DC Locator DNS records are not registered in the DNS*"
+$ADRulesToClose += "PAC Verification Failure"
+$ADRulesToClose += "Policy Update Failure"
+$ADRulesToClose += "Setting the administrators password failed.  It has been reset to blank."
+$ADRulesToClose += "The account identifier pool for this domain controller cannot be updated"
+$ADRulesToClose += "The computer did not have sufficient rights to perform the secure dynami*"
+$ADRulesToClose += "The computer name cannot be mapped to an object in Active Directory - *"
+$ADRulesToClose += "The DC was unable to obtain the next account-identifier"
+$ADRulesToClose += "The DNS server with which this DC will register does not support the *"
+$ADRulesToClose += "The domain controller failed to obtain a new account identifier pool"
+$ADRulesToClose += "The group caching option has now been properly updated"
+$ADRulesToClose += "The machine account cannot be found"
+$ADRulesToClose += "The number of Group Policies has exceeded the maximum limit"
+$ADRulesToClose += "The registry policy file could not be accessed during application *"
+$ADRulesToClose += "The system clock has not been synchronized for some time"
+$ADRulesToClose += "This domain controller will not start up because its machine account*"
+$ADRulesToClose += "Trusted Domain List Update Failure"
+$ADRulesToClose += "Unexpected SAM Failure"
+$ADRulesToClose += "Windows cannot determine the *"
+$ADRulesToClose += "Windows cannot obtain the domain controller name for your computer network."
+$ADRulesToClose += "Windows is setting a registry value"
+
+foreach ( $alert in $ADRulesToClose )
+	{
+	get-scomalert -name $alert | Resolve-SCOMAlert -Comment "ADCS addendum alert rule automation completed"
+	}
+
+
+# Write event for rule closure
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"`n#Proactive DailyTasks ADCS rule reset completed for ($date)")
+
+
+#=================================================================================
+# End MAIN script section
 
 
 # End of script section
@@ -271,6 +610,701 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
         </ModuleImplementation>
         <OutputType>System!System.PropertyBagData</OutputType>
       </DataSourceModuleType>
+      <DataSourceModuleType ID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.DataSource" Accessibility="Internal" Batching="false">
+        <Configuration>
+          <xsd:element minOccurs="1" type="xsd:integer" name="TimeoutSeconds" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="TimeoutSeconds" Selector="$Config/TimeoutSeconds$" ParameterType="int" />
+        </OverrideableParameters>
+        <ModuleImplementation Isolation="Any">
+          <Composite>
+            <MemberModules>
+              <DataSource ID="Scheduler" TypeID="System!System.Scheduler">
+                <Scheduler>
+                  <WeeklySchedule>
+                    <Windows>
+                      <Daily>
+                        <Start>05:31</Start>
+                        <End>06:01</End>
+                        <DaysOfWeekMask>62</DaysOfWeekMask>
+                      </Daily>
+                    </Windows>
+                  </WeeklySchedule>
+                  <ExcludeDates />
+                </Scheduler>
+              </DataSource>
+              <ProbeAction ID="PA" TypeID="Windows!Microsoft.Windows.PowerShellPropertyBagTriggerOnlyProbe">
+                <ScriptName>Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.DataSource.v1008.ps1</ScriptName>
+                <ScriptBody>
+#=================================================================================
+#  Script to gather ADCS alerts and close via on demand task
+#
+#  Author: Kevin Justin
+#  v1.0
+#=================================================================================
+
+
+# Constants section - modify stuff here:
+#=================================================================================
+# Assign script name variable for use in event logging.
+# ScriptName should be the same as the ID of the module that the script is contained in
+$ScriptName = "Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.DataSource.v1008.ps1"
+$EventID = "552"
+#=================================================================================
+
+
+# Starting Script section - All scripts get this
+#=================================================================================
+# Gather the start time of the script
+$StartTime = Get-Date
+#Set variable to be used in logging events
+$whoami = whoami
+# Load MOMScript API
+$momapi = New-Object -comObject MOM.ScriptAPI
+#Log script event that we are starting task
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Script is starting. `n Running as ($whoami).")
+#=================================================================================
+
+
+# PropertyBag Script section - Monitoring scripts get this
+#=================================================================================
+# Load SCOM PropertyBag function
+$bag = $momapi.CreatePropertyBag()
+#=================================================================================
+
+
+# Begin MAIN script section
+#=================================================================================
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Gather ADCS Alerts for date ($date).")
+
+#For a simple example - get files in Windows Temp:
+$date = get-date -uFormat "%Y-%m-%d"
+
+# Grab past 24 hours
+if ( (get-date).DayOfWeek -ne "Monday" )
+	{
+	$Time = [DateTime](Get-Date).AddDays(-1)
+	}
+if ( (get-date).DayOfWeek -eq "Monday" )
+	{
+	$Time = [DateTime](Get-Date).AddDays(-3)
+	}
+
+
+# Gather AD alerts
+## Grab the MP, get the Monitors and Rules from the MP, then grab all alerts found inside the Monitors/Rules
+$SCOMCoreMP = Get-SCOMManagementPack -DisplayName "Windows Server 2016+ Active Directory Certificate Services Monitoring"
+$SCOMCoreRules = $SCOMCoreMP.GetRules()
+$SCOMCoreMonitors = $SCOMCoreMP.GetMonitors()
+
+$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts.Count
+
+$SCOMCoreRuleAlerts = Get-SCOMAlert | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreRuleAlerts.Count
+
+$SCOMCoreMonitorAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreMonitorAlerts.Count
+
+$Test = $SCOMCoreReportAlerts.Count
+
+
+$OpenADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -ne "255"}
+$OpenADCSAlerts.Count
+$ClosedADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -eq "255"}
+$ClosedADCSAlerts.Count
+
+$ADCSAlerts = $SCOMCoreReportAlerts | select MonitoringObjectDisplayName,Description
+
+	#| select MonitoringObjectDisplayName,Description
+
+$Test = $ADCSAlerts.count
+
+
+if ( $Test -eq 0 )
+	{
+	$Message = "ZERO ADCS 2016+ alerts report for ($date)"
+	$momapi.LogScriptEvent($ScriptName,$EventID,0,"ZERO ADCS 2016+ alerts report for ($date).")
+	}
+
+if ( $Test -gt 0 )
+	{
+	# Build report
+	$ADCSMessage = @()
+
+	$ADCSMessage += ""
+
+	# Show ADCS alerts by Time Raised,NetBiosComputerName,Message
+	#
+	$ADCSMessage += "# ADCS Alert report for $($date)"
+	$ADCSMessage += "#"
+	$ADCSMessage += "# Count of NEW ADCS alerts = $($ADCSAlerts.Count)"
+	$ADCSMessage += "#========================================================"
+	$ADCSMessage += ""
+
+	$ADCSMessage += "# ADCS Alert detail"
+	$ADCSMessage += "#============================================="
+	if ( $ADCSAlerts.Count -lt 10 )
+		{
+		$ADCSMessage += $ADCSAlerts | select NetBiosComputerName,TimeRaised,Description -auto -wrap
+		}
+	if ( $ADCSAlerts.Count -ge 10 )
+		{
+		$ADCSMessage += "The number of ADCS alerts exceeds 10 since the last report execution"
+		}
+	$ADCSMessage += "#========================"
+	$ADCSMessage += ""
+	}
+
+
+$ADCSMessage
+
+$ADCSMessage = $ADCSMessage | out-string
+
+
+#============================================================
+
+  $Result = "GOOD"
+  $Message = "Daily ADCS alerts report for ($date)"
+
+  $momapi.LogScriptEvent($ScriptName,$EventID,0,"ADCS Monitors auto-closed for ($date). `n `n$ADCSMessage")
+
+#$bag.AddValue('Result',$Result)
+$bag.AddValue('Count',$Test)
+$bag.AddValue('Message',$Message)
+$bag.AddValue('Summary',$ADCSMessage)
+
+
+# Return all bags
+$bag
+#=================================================================================
+# End MAIN script section
+
+
+# End of script section
+#=================================================================================
+#Log an event for script ending and total execution time.
+$EndTime = Get-Date
+$ScriptTime = ($EndTime - $StartTime).TotalSeconds
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Script Completed. `n Script Runtime: ($ScriptTime) seconds.")
+#=================================================================================
+# End of script
+                </ScriptBody>
+                <TimeoutSeconds>$Config/TimeoutSeconds$</TimeoutSeconds>
+              </ProbeAction>
+            </MemberModules>
+            <Composition>
+              <Node ID="PA">
+                <Node ID="Scheduler" />
+              </Node>
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.PropertyBagData</OutputType>
+      </DataSourceModuleType>
+
+      <WriteActionModuleType ID="Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.WA" Accessibility="Internal" Batching="false">
+        <Configuration>
+          <xsd:element minOccurs="1" name="TimeoutSeconds" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="TimeoutSeconds" Selector="$Config/TimeoutSeconds$" ParameterType="int" />
+        </OverrideableParameters>
+        <ModuleImplementation Isolation="Any">
+          <Composite>
+            <MemberModules>
+              <WriteAction ID="PSWA" TypeID="Windows!Microsoft.Windows.PowerShellWriteAction">
+                <ScriptName>Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.WA.v1008.ps1</ScriptName>
+                <ScriptBody>
+#=================================================================================
+#  Script to gather ADCS alerts and close via on demand task
+#
+#  Author: Kevin Justin
+#  v1.0
+#=================================================================================
+
+
+# Constants section - modify stuff here:
+#=================================================================================
+# Assign script name variable for use in event logging.
+# ScriptName should be the same as the ID of the module that the script is contained in
+$ScriptName = "Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.WA.v1008.ps1"
+$EventID = "551"
+#=================================================================================
+
+# Starting Script section - All scripts get this
+#=================================================================================
+# Gather the start time of the script
+$StartTime = Get-Date
+#Set variable to be used in logging events
+$whoami = whoami
+# Load MOMScript API
+$momapi = New-Object -comObject MOM.ScriptAPI
+#Log script event that we are starting task
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Script is starting. `n Running as ($whoami).")
+#=================================================================================
+
+
+# PropertyBag Script section - Monitoring scripts get this
+#=================================================================================
+# Load SCOM PropertyBag function
+$bag = $momapi.CreatePropertyBag()
+#=================================================================================
+
+
+# Begin MAIN script section
+#=================================================================================
+
+#For a simple example - get files in Windows Temp:
+$date = get-date -uFormat "%Y-%m-%d"
+$Age = [DateTime](Get-Date).AddDays(-1)
+
+# Grab past 24 hours
+if ( (get-date).DayOfWeek -ne "Monday" )
+	{
+	$Time = [DateTime](Get-Date).AddDays(-1)
+	}
+if ( (get-date).DayOfWeek -eq "Monday" )
+	{
+	$Time = [DateTime](Get-Date).AddDays(-3)
+	}
+
+
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Gather Proactive DailyTasks ADCS Monitors close automation for ($date).")
+$Message = "Proactive DailyTasks ADCS Monitors close automation for ($date)."
+
+
+# Gather AD alerts
+## Grab the MP, get the Monitors and Rules from the MP, then grab all alerts found inside the Monitors/Rules
+$SCOMCoreMP = Get-SCOMManagementPack -DisplayName "Windows Server 2016+ Active Directory Certificate Services Monitoring"
+
+$SCOMCoreRules = $SCOMCoreMP.GetRules()
+$SCOMCoreMonitors = $SCOMCoreMP.GetMonitors()
+
+$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts.Count
+
+$SCOMCoreRuleAlerts = Get-SCOMAlert | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreRuleAlerts.Count
+
+$SCOMCoreMonitorAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreMonitorAlerts.Count
+
+$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts.Count
+$Test = $SCOMCoreReportAlerts.Count
+
+
+$OpenADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -ne "255"}
+$OpenADCSAlerts.Count
+$ClosedADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -eq "255"}
+$ClosedADCSAlerts.Count
+
+$ADCSAlerts = $SCOMCoreReportAlerts | select MonitoringObjectDisplayName,Description
+
+
+if ( $Test -eq 0 )
+	{
+	$Message = "ZERO ADCS 2016+ alerts to close for ($date)"
+	$momapi.LogScriptEvent($ScriptName,$EventID,0,"ZERO ADCS 2016+ alerts to close for ($date).")
+	}
+
+if ( $Test -gt 0 )
+	{
+	#
+	# Build report
+
+$ADCSComponentMessage = @()
+$ADCSComponentMessage += ""
+$ADCSComponentMessage += $Message
+$ADCSComponentMessage += ""
+$ADCSComponentMessage += "# ADCS Monitors auto-closed"
+$ADCSComponentMessage += "#============================================================"
+$ADCSComponentMessage += "# Total ADCS alerts = $($SCOMCoreReportAlerts.Count)"
+$ADCSComponentMessage += "#"
+$ADCSComponentMessage += "# Open alerts = $($OpenADCSAlerts.Count)"
+$ADCSComponentMessage += "# Closed alerts = $($ClosedADCSAlerts.Count)"
+$ADCSComponentMessage += "#"
+$ADCSComponentMessage += "# Automation closed alerts = $($OpenADCSAlerts.Count)"
+$ADCSComponentMessage += "#========================================="
+$ADCSComponentMessage += ""
+
+$ADCSComponentMessage
+
+$ADCSComponentMessage = $ADCSComponentMessage | out-string
+
+
+# Log data event before resetting monitors
+#============================================================
+  $Result = "GOOD"
+  $Message = "Proactive DailyTasks ADCS Monitors close automation for ($date)"
+
+  $momapi.LogScriptEvent($ScriptName,$EventID,0,"Proactive DailyTasks ADCS Monitors close automation for ($date). `n `n$ADCSComponentMessage")
+
+#$bag.AddValue('Result',$Result)
+$bag.AddValue('Count',$Test)
+$bag.AddValue('Message',$Message)
+$bag.AddValue('Summary',$ADCSComponentMessage)
+
+# Return all bags
+$bag
+
+
+
+#=================================================================================
+# Reset Monitors Script base code modified
+# Put ps1 in mgmtpacks folder
+# https://sc.scomurr.com/scom-2012-monitor-reset-cleaning-up-the-environment/
+#	Download
+# https://gallery.technet.microsoft.com/SCOM-2012-Batch-reset-63a17534
+
+#Alternate
+#https://gallery.technet.microsoft.com/scriptcenter/Auto-reset-script-for-d8b775ca
+
+# Changed up logic to sort unique classes in mgmnt pack families.
+# Added Age variable for monitors thanks to Aris Somatis - $Age specified in top level variables
+# Cycling through monitors made reset loop huge ~650 monitors when only ~50 classes
+# New logic reduced runtime from 8 minutes to roughly 8 seconds
+#=================================================================================
+
+# Write event for rule closure
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Proactive DailyTasks ADCS Monitors reset started for ($date). `n `n $($ADCSMonitorsToAutoClose.Count) ")
+
+
+if ( $SCOMCoreReportAlerts.Count -gt 0 )
+	{
+	# Get ADCS classes
+		$ADCSLibrary = Get-SCOMManagementPack -name "Microsoft.Windows.CertificateServices.Library"
+			#get-scomclass -ManagementPack $ADLibrary
+		$ADCSMonitoring = $SCOMCoreMP
+			#get-scomclass -ManagementPack $SCOMCoreMP | fl DisplayName,Name,ID
+		$ADCSDiscovery = Get-SCOMManagementPack -name Microsoft.Windows.ActiveDirectoryCertificateServices.2016.Discovery
+			#get-scomclass -ManagementPack $ADDiscovery | fl DisplayName,Name,ID
+
+	# ADCS pack naming
+	$ADCSClasses = @(Get-SCOMClass -ManagementPack $ADLibrary; Get-SCOMClass -ManagementPack $ADDiscovery; )
+	$ADCSClass = $ADCSClasses | sort -property Name -uniq
+	# Debug
+	$ADCSClass.Count
+
+	# Set up monitor objects to reset
+	foreach ($Class in $ADCSClass)
+		{
+		$ActiveMonitors = @(Get-SCOMClassInstance -Class $Class | ? { ($_.healthstate -ne 'Success') -AND ( $_.healthstate -ne 'Uninitialized') -AND ($_.IsAvailable -eq $true) } )
+		# Debug
+		$ActiveMonitors.Count
+		# $ActiveMonitors | fl -property *
+		write-host "Found" $ActiveMonitors.Count "unhealthy monitors for class" $Class
+		foreach ( $UnhealthyOLDMonitor in $ActiveMonitors )
+			{
+			#if ( $UnhealthyOLDMonitor.AvailabilityLastModified -lt $Age )
+			if ( $UnhealthyOLDMonitor.StateLastModified -lt $Age )
+				{
+				#$UnhealthyMonitors += $ActiveMonitors.Count
+				#UnhealthyOLDMonitor | select AvailabilityLastModified,Path,DisplayName
+				#$UnhealthyOLDMonitor.Count
+				#write-host "Found" + $UnhealthyOLDMonitor.Count + "unhealthy monitor beyond" $Age "days."
+				#write-host ""
+				if ( $ActiveMonitors.Count -gt 0)
+					{
+					foreach ( $ActiveMonitor in $UnhealthyOLDMonitor )
+						{
+						# Debug
+						$ActiveMonitor.ID
+						write-host " Resetting Health State on '" + $ActiveMonitor.FullName + "'" 
+						write-host ""
+						$ActiveMonitor.ResetMonitoringState($ActiveMonitor)
+						}
+					}
+				}
+			}
+		}
+	# Debug
+	#$MonitorClass | fl -property *
+	#$MonitorClass | select DisplayName,ID
+	}
+
+
+# Debug Write event for rule closure
+# $UnhealthyMonitors = $($UnhealthyMonitors | measure-object -sum).sum
+#$momapi.LogScriptEvent($ScriptName,$EventID,0,"Proactive ADCS monitors auto-closed on ($date). `n `n $($ADCSMonitorsToAutoClose.Count) ")
+# Write event for rule closure
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Proactive DailyTasks ADCS monitor reset completed for ($date)")
+
+
+
+# Unhealthy rules
+#
+# (Rules) Alerts to auto close after reset monitor
+# $SCOMCoreRuleAlerts | Resolve-SCOMAlert
+$SCOMCoreRules.DisplayName | Resolve-SCOMAlert -Comment "Closing daily alert flood after report alert generated - ADCS Addendum automation DS"
+
+$ADRulesToClose = @()
+
+$ADRulesToClose +=
+$ADRulesToClose += "A dll cannot be loaded because the software was incorrectly installed"
+$ADRulesToClose += "A DNS server used by this server for name resolution*"
+$ADRulesToClose += "A resource record for the computer name of the DC*"
+$ADRulesToClose += "A RSoP (Resultant Set of Policies) error occurred"
+$ADRulesToClose += "A user from a different forest*"
+$ADRulesToClose += "A well known *"
+$ADRulesToClose += "Account creation will *"
+$ADRulesToClose += "Account Name Not Unique"
+$ADRulesToClose += "Accounts with the same SID*"
+$ADRulesToClose += "Active Directory Web Services *"
+$ADRulesToClose += "ADCS*"
+$ADRulesToClose += "AD Database Size Collection"
+$ADRulesToClose += "AD Replication Queue"
+$ADRulesToClose += "An account *"
+$ADRulesToClose += "An attempt to *"
+$ADRulesToClose += "Change Password on KRBTGT Account Failed"
+$ADRulesToClose += "Corrupt Credentials"
+$ADRulesToClose += "Domain Operation Mode has been changed to Native Mode"
+$ADRulesToClose += "Duplicate account names were detected - one account has been renamed"
+$ADRulesToClose += "Duplicate User Principal Names have been detected"
+$ADRulesToClose += "Free Disk Space * Collection"
+$ADRulesToClose += "Global Catalog Search Response Time Collection"
+$ADRulesToClose += "Group policy processing aborted - cannot determine site"
+$ADRulesToClose += "Invalid Forwarded AS Request"
+$ADRulesToClose += "Invalid Policy Data"
+$ADRulesToClose += "Machine account policy failure - *"
+$ADRulesToClose += "Memory Allocation Error - the system may be overloaded"
+$ADRulesToClose += "No input provider to sync time"
+$ADRulesToClose += "One or more of the DC Locator DNS records are not registered in the DNS*"
+$ADRulesToClose += "PAC Verification Failure"
+$ADRulesToClose += "Policy Update Failure"
+$ADRulesToClose += "Setting the administrators password failed.  It has been reset to blank."
+$ADRulesToClose += "The account identifier pool for this domain controller cannot be updated"
+$ADRulesToClose += "The computer did not have sufficient rights to perform the secure dynami*"
+$ADRulesToClose += "The computer name cannot be mapped to an object in Active Directory - *"
+$ADRulesToClose += "The DC was unable to obtain the next account-identifier"
+$ADRulesToClose += "The DNS server with which this DC will register does not support the *"
+$ADRulesToClose += "The domain controller failed to obtain a new account identifier pool"
+$ADRulesToClose += "The group caching option has now been properly updated"
+$ADRulesToClose += "The machine account cannot be found"
+$ADRulesToClose += "The number of Group Policies has exceeded the maximum limit"
+$ADRulesToClose += "The registry policy file could not be accessed during application *"
+$ADRulesToClose += "The system clock has not been synchronized for some time"
+$ADRulesToClose += "This domain controller will not start up because its machine account*"
+$ADRulesToClose += "Trusted Domain List Update Failure"
+$ADRulesToClose += "Unexpected SAM Failure"
+$ADRulesToClose += "Windows cannot determine the *"
+$ADRulesToClose += "Windows cannot obtain the domain controller name for your computer network."
+$ADRulesToClose += "Windows is setting a registry value"
+
+foreach ( $alert in $ADRulesToClose )
+	{
+	get-scomalert -name $alert | Resolve-SCOMAlert -Comment "ADCS addendum alert rule automation completed"
+	}
+
+
+# Write event for rule closure
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"`n#Proactive DailyTasks ADCS rule reset completed for ($date)")
+
+
+#=================================================================================
+# End MAIN script section
+
+
+# End of script section
+#=================================================================================
+#Log an event for script ending and total execution time.
+$EndTime = Get-Date
+$ScriptTime = ($EndTime - $StartTime).TotalSeconds
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Runtime: ($ScriptTime) seconds.")
+#=================================================================================
+# End of script
+                </ScriptBody>
+                <TimeoutSeconds>$Config/TimeoutSeconds$</TimeoutSeconds>
+              </WriteAction>
+            </MemberModules>
+            <Composition>
+              <Node ID="PSWA" />
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.BaseData</OutputType>
+        <InputType>System!System.BaseData</InputType>
+      </WriteActionModuleType>
+      <WriteActionModuleType ID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.WA" Accessibility="Internal" Batching="false">
+        <Configuration>
+          <xsd:element minOccurs="1" name="TimeoutSeconds" type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema" />
+        </Configuration>
+        <OverrideableParameters>
+          <OverrideableParameter ID="TimeoutSeconds" Selector="$Config/TimeoutSeconds$" ParameterType="int" />
+        </OverrideableParameters>
+        <ModuleImplementation Isolation="Any">
+          <Composite>
+            <MemberModules>
+              <WriteAction ID="PSWA" TypeID="Windows!Microsoft.Windows.PowerShellWriteAction">
+                <ScriptName>Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.WA.v1008.ps1</ScriptName>
+                <ScriptBody>
+#=================================================================================
+#  Script to gather ADCS alerts and close via on demand task
+#
+#  Author: Kevin Justin
+#  v1.0
+#=================================================================================
+
+
+# Constants section - modify stuff here:
+#=================================================================================
+# Assign script name variable for use in event logging.
+# ScriptName should be the same as the ID of the module that the script is contained in
+$ScriptName = "Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.WA.v1008.ps1"
+$EventID = "553"
+#=================================================================================
+
+
+# Starting Script section - All scripts get this
+#=================================================================================
+# Gather the start time of the script
+$StartTime = Get-Date
+#Set variable to be used in logging events
+$whoami = whoami
+# Load MOMScript API
+$momapi = New-Object -comObject MOM.ScriptAPI
+#Log script event that we are starting task
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Script is starting. `n Running as ($whoami).")
+#=================================================================================
+
+
+# PropertyBag Script section - Monitoring scripts get this
+#=================================================================================
+# Load SCOM PropertyBag function
+$bag = $momapi.CreatePropertyBag()
+#=================================================================================
+
+
+# Begin MAIN script section
+#=================================================================================
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Gather ADCS Alerts for date ($date).")
+
+#For a simple example - get files in Windows Temp:
+$date = get-date -uFormat "%Y-%m-%d"
+
+# Grab past 24 hours
+if ( (get-date).DayOfWeek -ne "Monday" )
+	{
+	$Time = [DateTime](Get-Date).AddDays(-1)
+	}
+if ( (get-date).DayOfWeek -eq "Monday" )
+	{
+	$Time = [DateTime](Get-Date).AddDays(-3)
+	}
+
+
+# Gather AD alerts
+## Grab the MP, get the Monitors and Rules from the MP, then grab all alerts found inside the Monitors/Rules
+$SCOMCoreMP = Get-SCOMManagementPack -DisplayName "Windows Server 2016+ Active Directory Certificate Services Monitoring"
+$SCOMCoreRules = $SCOMCoreMP.GetRules()
+$SCOMCoreMonitors = $SCOMCoreMP.GetMonitors()
+
+$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts.Count
+
+$SCOMCoreRuleAlerts = Get-SCOMAlert | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreRuleAlerts.Count
+
+$SCOMCoreMonitorAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreMonitorAlerts.Count
+
+$Test = $SCOMCoreReportAlerts.Count
+
+
+$OpenADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -ne "255"}
+$OpenADCSAlerts.Count
+$ClosedADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -eq "255"}
+$ClosedADCSAlerts.Count
+
+$ADCSAlerts = $SCOMCoreReportAlerts | select MonitoringObjectDisplayName,Description
+
+	#| select MonitoringObjectDisplayName,Description
+
+$Test = $ADCSAlerts.count
+
+
+if ( $Test -eq 0 )
+	{
+	$Message = "ZERO ADCS 2016+ alerts report for ($date)"
+	$momapi.LogScriptEvent($ScriptName,$EventID,0,"ZERO ADCS 2016+ alerts report for ($date).")
+	}
+
+if ( $Test -gt 0 )
+	{
+	# Build report
+	$ADCSMessage = @()
+
+	$ADCSMessage += ""
+
+	# Show ADCS alerts by Time Raised,NetBiosComputerName,Message
+	#
+	$ADCSMessage += "# ADCS Alert report for $($date)"
+	$ADCSMessage += "#"
+	$ADCSMessage += "# Count of NEW ADCS alerts = $($ADCSAlerts.Count)"
+	$ADCSMessage += "#========================================================"
+	$ADCSMessage += ""
+
+	$ADCSMessage += "# ADCS Alert detail"
+	$ADCSMessage += "#============================================="
+	if ( $ADCSAlerts.Count -lt 10 )
+		{
+		$ADCSMessage += $ADCSAlerts | select NetBiosComputerName,TimeRaised,Description -auto -wrap
+		}
+	if ( $ADCSAlerts.Count -ge 10 )
+		{
+		$ADCSMessage += "The number of ADCS alerts exceeds 10 since the last report execution"
+		}
+	$ADCSMessage += "#========================"
+	$ADCSMessage += ""
+	}
+
+
+$ADCSMessage
+
+$ADCSMessage = $ADCSMessage | out-string
+
+
+#============================================================
+
+  $Result = "GOOD"
+  $Message = "Daily ADCS alerts report for ($date)"
+
+  $momapi.LogScriptEvent($ScriptName,$EventID,0,"ADCS Monitors auto-closed for ($date). `n `n$ADCSMessage")
+
+#$bag.AddValue('Result',$Result)
+$bag.AddValue('Count',$Test)
+$bag.AddValue('Message',$Message)
+$bag.AddValue('Summary',$ADCSMessage)
+
+
+# Return all bags
+$bag
+#=================================================================================
+# End MAIN script section
+
+
+# End of script section
+#=================================================================================
+#Log an event for script ending and total execution time.
+$EndTime = Get-Date
+$ScriptTime = ($EndTime - $StartTime).TotalSeconds
+$momapi.LogScriptEvent($ScriptName,$EventID,0,"Script Completed. `n Script Runtime: ($ScriptTime) seconds.")
+#=================================================================================
+# End of script
+                </ScriptBody>
+                <TimeoutSeconds>$Config/TimeoutSeconds$</TimeoutSeconds>
+              </WriteAction>
+            </MemberModules>
+            <Composition>
+              <Node ID="PSWA" />
+            </Composition>
+          </Composite>
+        </ModuleImplementation>
+        <OutputType>System!System.BaseData</OutputType>
+        <InputType>System!System.BaseData</InputType>
+      </WriteActionModuleType>
     </ModuleTypes>
     <MonitorTypes>
       <UnitMonitorType ID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.Service.Monitor.MonitorType" Accessibility="Public">
@@ -667,7 +1701,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
                     <Property>$MPElement[Name="Windows!Microsoft.Windows.Computer"]/PrincipalName$</Property>
                   </ValueExpression>
                   <Operator>MatchesRegularExpression</Operator>
-                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                  <Pattern>(?i)##ADCSServer##</Pattern>
                 </RegExExpression>
               </Expression>
             </MembershipRule>
@@ -683,7 +1717,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
                     </HostProperty>
                   </ValueExpression>
                   <Operator>MatchesRegularExpression</Operator>
-                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                  <Pattern>(?i)##ADCSServer##</Pattern>
                 </RegExExpression>
               </Expression>
             </MembershipRule>
@@ -699,7 +1733,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
                     </HostProperty>
                   </ValueExpression>
                   <Operator>MatchesRegularExpression</Operator>
-                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                  <Pattern>(?i)##ADCSServer##</Pattern>
                 </RegExExpression>
               </Expression>
             </MembershipRule>
@@ -715,7 +1749,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
                     </HostProperty>
                   </ValueExpression>
                   <Operator>MatchesRegularExpression</Operator>
-                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                  <Pattern>(?i)##ADCSServer##</Pattern>
                 </RegExExpression>
               </Expression>
             </MembershipRule>
@@ -731,7 +1765,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
                     </HostProperty>
                   </ValueExpression>
                   <Operator>MatchesRegularExpression</Operator>
-                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                  <Pattern>(?i)##ADCSServer##</Pattern>
                 </RegExExpression>
               </Expression>
             </MembershipRule>
@@ -747,7 +1781,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
                     </HostProperty>
                   </ValueExpression>
                   <Operator>MatchesRegularExpression</Operator>
-                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                  <Pattern>(?i)##ADCSServer##</Pattern>
                 </RegExExpression>
               </Expression>
             </MembershipRule>
@@ -763,7 +1797,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
                     </HostProperty>
                   </ValueExpression>
                   <Operator>MatchesRegularExpression</Operator>
-                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                  <Pattern>(?i)##ADCSServer##</Pattern>
                 </RegExExpression>
               </Expression>
             </MembershipRule>
@@ -779,7 +1813,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
                     </HostProperty>
                   </ValueExpression>
                   <Operator>MatchesRegularExpression</Operator>
-                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                  <Pattern>(?i)##ADCSServer##</Pattern>
                 </RegExExpression>
               </Expression>
             </MembershipRule>
@@ -795,7 +1829,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
                     </HostProperty>
                   </ValueExpression>
                   <Operator>MatchesRegularExpression</Operator>
-                  <Pattern>(?i)##CAServer##|##CERTIFICATESERVERS##</Pattern>
+                  <Pattern>(?i)##ADCSServer##</Pattern>
                 </RegExExpression>
               </Expression>
             </MembershipRule>
@@ -864,7 +1898,181 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
           </WriteAction>
         </WriteActions>
       </Rule>
+      <Rule ID="Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.Rule" Enabled="true" Target="SC!Microsoft.SystemCenter.AllManagementServersPool" ConfirmDelivery="true" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>Alert</Category>
+        <DataSources>
+          <DataSource ID="DS" TypeID="Proactive.DailyTasks.ADCSAlerts.Close.Script.DataSource">
+            <TimeoutSeconds>2700</TimeoutSeconds>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="WA" TypeID="Health!System.Health.GenerateAlert">
+            <Priority>1</Priority>
+            <Severity>0</Severity>
+            <AlertMessageId>$MPElement[Name="Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.Rule.AlertMessage"]$</AlertMessageId>
+            <AlertParameters>
+              <AlertParameter1>$Data/Property[@Name='Count']$</AlertParameter1>
+              <AlertParameter2>$Data/Property[@Name='Message']$</AlertParameter2>
+              <AlertParameter3>$Data/Property[@Name='Summary']$</AlertParameter3>
+            </AlertParameters>
+            <Suppression>
+              <SuppressionValue>$Data/Property[@Name='Message']$</SuppressionValue>
+            </Suppression>
+          </WriteAction>
+        </WriteActions>
+      </Rule>
+      <Rule ID="Proactive.DailyTasks.ADCSAlerts.Close.Script.Task.Alert.Rule" Enabled="true" Target="SC!Microsoft.SystemCenter.AllManagementServersPool" ConfirmDelivery="true" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>Alert</Category>
+        <DataSources>
+          <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.EventProvider">
+            <LogName>Operations Manager</LogName>
+            <Expression>
+              <And>
+                <Expression>
+                  <SimpleExpression>
+                    <ValueExpression>
+                      <XPathQuery Type="UnsignedInteger">EventDisplayNumber</XPathQuery>
+                    </ValueExpression>
+                    <Operator>Equal</Operator>
+                    <ValueExpression>
+                      <Value Type="UnsignedInteger">551</Value>
+                    </ValueExpression>
+                  </SimpleExpression>
+                </Expression>
+                <Expression>
+                  <SimpleExpression>
+                    <ValueExpression>
+                      <XPathQuery Type="String">PublisherName</XPathQuery>
+                    </ValueExpression>
+                    <Operator>Equal</Operator>
+                    <ValueExpression>
+                      <Value Type="String">Health Service Script</Value>
+                    </ValueExpression>
+                  </SimpleExpression>
+                </Expression>
+                <Expression>
+                  <RegExExpression>
+                    <ValueExpression>
+                      <XPathQuery Type="String">EventDescription</XPathQuery>
+                    </ValueExpression>
+                    <Operator>ContainsSubstring</Operator>
+                    <Pattern>Proactive DailyTasks ADCS Monitors close automation for</Pattern>
+                  </RegExExpression>
+                </Expression>
+              </And>
+            </Expression>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="Alert" TypeID="Health!System.Health.GenerateAlert">
+            <Priority>1</Priority>
+            <Severity>0</Severity>
+            <AlertName />
+            <AlertDescription />
+            <AlertOwner />
+            <AlertMessageId>$MPElement[Name="Proactive.DailyTasks.ADCSAlerts.Close.Script.Task.Rule.AlertMessage"]$</AlertMessageId>
+            <AlertParameters>
+              <AlertParameter1>$Data/EventDescription$</AlertParameter1>
+            </AlertParameters>
+            <Suppression />
+          </WriteAction>
+        </WriteActions>
+      </Rule>
+      <Rule ID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.Rule" Enabled="true" Target="SC!Microsoft.SystemCenter.AllManagementServersPool" ConfirmDelivery="true" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>Alert</Category>
+        <DataSources>
+          <DataSource ID="DS" TypeID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.DataSource">
+            <TimeoutSeconds>600</TimeoutSeconds>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="WA" TypeID="Health!System.Health.GenerateAlert">
+            <Priority>1</Priority>
+            <Severity>0</Severity>
+            <AlertMessageId>$MPElement[Name="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.Rule.AlertMessage"]$</AlertMessageId>
+            <AlertParameters>
+              <AlertParameter1>$Data/Property[@Name='Count']$</AlertParameter1>
+              <AlertParameter2>$Data/Property[@Name='Message']$</AlertParameter2>
+              <AlertParameter3>$Data/Property[@Name='Summary']$</AlertParameter3>
+            </AlertParameters>
+            <Suppression>
+              <SuppressionValue>$Data/Property[@Name='Message']$</SuppressionValue>
+            </Suppression>
+          </WriteAction>
+        </WriteActions>
+      </Rule>
+      <Rule ID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Task.Alert.Rule" Enabled="true" Target="SC!Microsoft.SystemCenter.AllManagementServersPool" ConfirmDelivery="true" Remotable="true" Priority="Normal" DiscardLevel="100">
+        <Category>Alert</Category>
+        <DataSources>
+          <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.EventProvider">
+            <LogName>Operations Manager</LogName>
+            <Expression>
+              <And>
+                <Expression>
+                  <SimpleExpression>
+                    <ValueExpression>
+                      <XPathQuery Type="UnsignedInteger">EventDisplayNumber</XPathQuery>
+                    </ValueExpression>
+                    <Operator>Equal</Operator>
+                    <ValueExpression>
+                      <Value Type="UnsignedInteger">553</Value>
+                    </ValueExpression>
+                  </SimpleExpression>
+                </Expression>
+                <Expression>
+                  <SimpleExpression>
+                    <ValueExpression>
+                      <XPathQuery Type="String">PublisherName</XPathQuery>
+                    </ValueExpression>
+                    <Operator>Equal</Operator>
+                    <ValueExpression>
+                      <Value Type="String">Health Service Script</Value>
+                    </ValueExpression>
+                  </SimpleExpression>
+                </Expression>
+                <Expression>
+                  <RegExExpression>
+                    <ValueExpression>
+                      <XPathQuery Type="String">EventDescription</XPathQuery>
+                    </ValueExpression>
+                    <Operator>ContainsSubstring</Operator>
+                    <Pattern>ADCS 2016 Alert Summary report for</Pattern>
+                  </RegExExpression>
+                </Expression>
+              </And>
+            </Expression>
+          </DataSource>
+        </DataSources>
+        <WriteActions>
+          <WriteAction ID="Alert" TypeID="Health!System.Health.GenerateAlert">
+            <Priority>1</Priority>
+            <Severity>0</Severity>
+            <AlertName />
+            <AlertDescription />
+            <AlertOwner />
+            <AlertMessageId>$MPElement[Name="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Task.Alert.Rule.AlertMessage"]$</AlertMessageId>
+            <AlertParameters>
+              <AlertParameter1>$Data/EventDescription$</AlertParameter1>
+            </AlertParameters>
+            <Suppression />
+          </WriteAction>
+        </WriteActions>
+      </Rule>
     </Rules>
+    <Tasks>
+      <Task ID="Proactive.DailyTasks.ADCSAlerts.Report.Script.Task" Accessibility="Public" Enabled="true" Target="SC!Microsoft.SystemCenter.AllManagementServersPool" Timeout="120" Remotable="true">
+        <Category>Custom</Category>
+        <WriteAction ID="PSWA" TypeID="Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.WA">
+          <TimeoutSeconds>2700</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+      <Task ID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Task" Accessibility="Public" Enabled="true" Target="SC!Microsoft.SystemCenter.AllManagementServersPool" Timeout="120" Remotable="true">
+        <Category>Custom</Category>
+        <WriteAction ID="PSWA" TypeID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.WA">
+          <TimeoutSeconds>600</TimeoutSeconds>
+        </WriteAction>
+      </Task>
+    </Tasks>
     <Monitors>
       <UnitMonitor ID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.Monitor" Accessibility="Public" Enabled="true" Target="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Seed.Class" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.Service.Monitor.MonitorType" ConfirmDelivery="false">
         <Category>AvailabilityHealth</Category>
@@ -1268,6 +2476,10 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
       <StringResource ID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.Monitor.AlertMessage" />
       <StringResource ID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.EventID7031.Monitor.AlertMessage" />
       <StringResource ID="Microsoft.Windows.nCipherLog.EventID1.HSM.Monitor.AlertMessage" />
+      <StringResource ID="Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.Rule.AlertMessage" />
+      <StringResource ID="Proactive.DailyTasks.ADCSAlerts.Close.Script.Task.Rule.AlertMessage" />
+      <StringResource ID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.Rule.AlertMessage" />
+      <StringResource ID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Task.Alert.Rule.AlertMessage" />
     </StringResources>
   </Presentation>
   <LanguagePacks>
@@ -1276,6 +2488,10 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
         <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.Monitoring.Addendum">
           <Name>Microsoft Windows Active Directory Certificate Services 2016 Monitoring Addendum</Name>
           <Description> Management Pack created to turn OFF all rules for ADCS, as the monitors look at the same event source
+v1.0.0.8  27 Dec 2023 - Whitespace audit, added age to monitor reset logic
+v1.0.0.7  12 Dec 2023 - Updated reset logic to use Management Pack, removed ID property from reset logic
+v1.0.0.6   7 Dec 2023 - Closure and Report logic DS/WA added, Rules, Tasks, StringResource, DisplayStrings
+v1.0.0.5  28 Nov 2023 - Updated 7031 DS and ##ADCSServer## regex for groups
 v1.0.0.4  18 Jul 2023 - Updated DS script name
 v1.0.0.3   9 Jun 2022 - nCipherLog monitor
 v1.0.0.2  10 May 2022 - Updates for OcspSvc service and recovery task monitoring
@@ -1293,9 +2509,27 @@ v1.0.0.0  10 Jun 2020 - Created for Windows Server 2016+ ADCS (Certificate Servi
           <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP subscription components</Name>
           <Description>Microsoft Windows Active Directory Certificate Services OCSP application subscription components Group targeted Discovery</Description>
         </DisplayString>
+
         <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Monitor.DataSource">
           <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service Event ID 7031 Alerts Datasource</Name>
           <Description>This datasource generates Event ID 7031 Alerts</Description>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.Close.Script.DataSource">
+          <Name>Proactive DailyTasks ADCSAlerts report and auto-close DataSource</Name>
+          <Description>This datasource generates ADCSAlerts report and auto-close DataSource</Description>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.DataSource">
+          <Name>Proactive DailyTasks ADCSAlerts Summary Report and auto-close DataSource</Name>
+          <Description>This datasource generates ADCSAlerts summary report and auto-close DataSource</Description>
+        </DisplayString>
+
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.WA">
+          <Name>Proactive DailyTasks ADCSAlerts report and auto-close on-demand task</Name>
+          <Description>This write-action task generates ADCSAlerts report and auto-close DataSource</Description>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.WA">
+          <Name>Proactive DailyTasks ADCSAlerts summary report on-demand task</Name>
+          <Description>This write-action task generates ADCSAlerts summary report write action</Description>
         </DisplayString>
 
         <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OCSP.Seed.Class.Discovery">
@@ -1307,7 +2541,7 @@ v1.0.0.0  10 Jun 2020 - Created for Windows Server 2016+ ADCS (Certificate Servi
 
         <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.Service.Monitor.MonitorType">
           <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service MonitorType</Name>
-          <Description>This MonitorType is adds service monitor functionality</Description>
+          <Description>This MonitorType is ADCS service monitor functionality</Description>
         </DisplayString>
         <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Monitor.MonitorType">
           <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service MonitorType</Name>
@@ -1325,6 +2559,49 @@ v1.0.0.0  10 Jun 2020 - Created for Windows Server 2016+ ADCS (Certificate Servi
         <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.Customizations.EventID7031.Alert.Rule.AlertMessage">
           <Name>Microsoft Windows Active Directory Certificate Services 2016 OCSP Service System EventID7031 Rule Alert</Name>
           <Description>{0}</Description>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.Rule">
+          <Name>Proactive DailyTasks ADCSAlerts Auto-close Report Script Alert Rule</Name>
+          <Description>Proactive Scheduled rule to kick off datasource at 0615 M-F</Description>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.Rule.AlertMessage">
+          <Name>Proactive DailyTasks ADCSAlerts Auto-close Report Script Alert Rule</Name>
+          <Description>{1}
+
+{2}</Description>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.Close.Script.Task.Alert.Rule">
+          <Name>Proactive DailyTasks ADCSAlerts task Report Manual Task Rule</Name>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.Close.Script.Task.Rule.AlertMessage">
+          <Name>Proactive DailyTasks ADCSAlerts Report Script Manual Task Rule Alert</Name>
+          <Description>{0}</Description>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.Rule">
+          <Name>Proactive DailyTasks ADCSAlerts Summary Report Script Alert Rule</Name>
+          <Description>Proactive Scheduled rule to kick off summary datasource at 0615 M-F</Description>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.Rule.AlertMessage">
+          <Name>Proactive DailyTasks ADCSAlerts Summary Report Script Alert Rule</Name>
+          <Description>{1}
+
+{2}</Description>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Task.Alert.Rule">
+          <Name>Proactive DailyTasks ADCSAlerts Summary Report Manual Task Rule</Name>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Task.Alert.Rule.AlertMessage">
+          <Name>Proactive DailyTasks ADCSAlerts Summary Report Script Task Rule Alert</Name>
+          <Description>{0}</Description>
+        </DisplayString>
+
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.Report.Script.Task">
+          <Name>Proactive DailyTasks ADCSAlerts Autoclose Report Script Task</Name>
+          <Description>Proactive DailyTasks ADCSAlerts AutoClose task to kick off on-demand</Description>
+        </DisplayString>
+        <DisplayString ElementID="Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Task">
+          <Name>Proactive DailyTasks ADCSAlerts Summary Report Script Task</Name>
+          <Description>Proactive DailyTasks ADCSAlerts SummaryReport task to kick off on-demand</Description>
         </DisplayString>
 
         <DisplayString ElementID="Microsoft.Windows.OnlineResponderService.CARole.2016.OCSPSvc.Monitor">
