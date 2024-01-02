@@ -2,7 +2,7 @@
   <Manifest>
     <Identity>
       <ID>Microsoft.Windows.Active.Directory.Certificate.Services.2016.Monitoring.Addendum</ID>
-      <Version>1.0.0.8</Version>
+      <Version>1.0.0.9</Version>
     </Identity>
     <Name>Microsoft Windows Active Directory Certificate Services 2016 Monitoring Addendum</Name>
     <References>
@@ -101,7 +101,7 @@
                 </Scheduler>
               </DataSource>
               <ProbeAction ID="PA" TypeID="Windows!Microsoft.Windows.PowerShellPropertyBagTriggerOnlyProbe">
-                <ScriptName>Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.EventID7031.Monitor.DS.v1008.ps1</ScriptName>
+                <ScriptName>Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.EventID7031.Monitor.DS.v1009.ps1</ScriptName>
                 <ScriptBody>
 #=================================================================================
 #  Check for 7031 events for Microsoft Windows Active Directory Certificate Services 2016 OnlineResponderService EventID7031 events
@@ -114,7 +114,7 @@
 # Constants section - modify stuff here:
 #=================================================================================
 # Assign script name variable for use in event logging.
-$ScriptName = "Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.EventID7031.Monitor.DS.v1008.ps1"
+$ScriptName = "Microsoft.Windows.Active.Directory.Certificate.Services.2016.OnlineResponderService.EventID7031.Monitor.DS.v1009.ps1"
 $EventID = "661"
 #=================================================================================
 
@@ -296,7 +296,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"Script Completed. `n Script Runti
                 </Scheduler>
               </DataSource>
               <ProbeAction ID="PA" TypeID="Windows!Microsoft.Windows.PowerShellPropertyBagTriggerOnlyProbe">
-                <ScriptName>Proactive.DailyTasks.ADCSAlerts.Close.Script.Datasource.v1008.ps1</ScriptName>
+                <ScriptName>Proactive.DailyTasks.ADCSAlerts.Close.Script.Datasource.v1009.ps1</ScriptName>
                 <ScriptBody>
 #=================================================================================
 #  Script to gather ADCS alerts and close via on demand task
@@ -310,7 +310,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"Script Completed. `n Script Runti
 #=================================================================================
 # Assign script name variable for use in event logging.
 # ScriptName should be the same as the ID of the module that the script is contained in
-$ScriptName = "Proactive.DailyTasks.ADCSAlerts.Close.Script.Datasource.v1008.ps1"
+$ScriptName = "Proactive.DailyTasks.ADCSAlerts.Close.Script.Datasource.v1009.ps1"
 $EventID = "550"
 #=================================================================================
 
@@ -364,24 +364,24 @@ $SCOMCoreMP = Get-SCOMManagementPack -DisplayName "Windows Server 2016+ Active D
 $SCOMCoreRules = $SCOMCoreMP.GetRules()
 $SCOMCoreMonitors = $SCOMCoreMP.GetMonitors()
 
-$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts = Get-SCOMAlert -ResolutionState (0..254) | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
 $SCOMCoreReportAlerts.Count
 
-$SCOMCoreRuleAlerts = Get-SCOMAlert | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreRuleAlerts = $SCOMCoreReportAlerts | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) }
 $SCOMCoreRuleAlerts.Count
 
-$SCOMCoreMonitorAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreMonitorAlerts = $SCOMCoreReportAlerts | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) }
 $SCOMCoreMonitorAlerts.Count
 
-$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts = $SCOMCoreReportAlerts | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
 $SCOMCoreReportAlerts.Count
 $Test = $SCOMCoreReportAlerts.Count
 
 
-$OpenADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -ne "255"}
-$OpenADCSAlerts.Count
-$ClosedADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -eq "255"}
-$ClosedADCSAlerts.Count
+$OpenADCS2012Alerts = $SCOMCoreReportAlerts
+$OpenADCS2012Alerts.Count
+$ClosedADCS2012Alerts = get-SCOMAlert -ResolutionState 255 | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$ClosedADCS2012Alerts.Count
 
 $ADCSAlerts = $SCOMCoreReportAlerts | select MonitoringObjectDisplayName,Description
 
@@ -635,7 +635,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
                 </Scheduler>
               </DataSource>
               <ProbeAction ID="PA" TypeID="Windows!Microsoft.Windows.PowerShellPropertyBagTriggerOnlyProbe">
-                <ScriptName>Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.DataSource.v1008.ps1</ScriptName>
+                <ScriptName>Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.DataSource.v1009.ps1</ScriptName>
                 <ScriptBody>
 #=================================================================================
 #  Script to gather ADCS alerts and close via on demand task
@@ -649,7 +649,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
 #=================================================================================
 # Assign script name variable for use in event logging.
 # ScriptName should be the same as the ID of the module that the script is contained in
-$ScriptName = "Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.DataSource.v1008.ps1"
+$ScriptName = "Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.DataSource.v1009.ps1"
 $EventID = "552"
 #=================================================================================
 
@@ -698,21 +698,24 @@ $SCOMCoreMP = Get-SCOMManagementPack -DisplayName "Windows Server 2016+ Active D
 $SCOMCoreRules = $SCOMCoreMP.GetRules()
 $SCOMCoreMonitors = $SCOMCoreMP.GetMonitors()
 
-$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts = Get-SCOMAlert -ResolutionState (0..254) | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
 $SCOMCoreReportAlerts.Count
 
-$SCOMCoreRuleAlerts = Get-SCOMAlert | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreRuleAlerts = $SCOMCoreReportAlerts | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) }
 $SCOMCoreRuleAlerts.Count
 
-$SCOMCoreMonitorAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreMonitorAlerts = $SCOMCoreReportAlerts | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) }
 $SCOMCoreMonitorAlerts.Count
+
+$SCOMCoreReportAlerts = $SCOMCoreReportAlerts | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts.Count
 
 $Test = $SCOMCoreReportAlerts.Count
 
 
-$OpenADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -ne "255"}
+$OpenADCSAlerts = $SCOMCoreReportAlerts
 $OpenADCSAlerts.Count
-$ClosedADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -eq "255"}
+$ClosedADCSAlerts = Get-SCOMAlert -ResolutionState 255 | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
 $ClosedADCSAlerts.Count
 
 $ADCSAlerts = $SCOMCoreReportAlerts | select MonitoringObjectDisplayName,Description
@@ -815,7 +818,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"Script Completed. `n Script Runti
           <Composite>
             <MemberModules>
               <WriteAction ID="PSWA" TypeID="Windows!Microsoft.Windows.PowerShellWriteAction">
-                <ScriptName>Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.WA.v1008.ps1</ScriptName>
+                <ScriptName>Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.WA.v1009.ps1</ScriptName>
                 <ScriptBody>
 #=================================================================================
 #  Script to gather ADCS alerts and close via on demand task
@@ -829,7 +832,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"Script Completed. `n Script Runti
 #=================================================================================
 # Assign script name variable for use in event logging.
 # ScriptName should be the same as the ID of the module that the script is contained in
-$ScriptName = "Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.WA.v1008.ps1"
+$ScriptName = "Proactive.DailyTasks.ADCSAlerts.Close.Script.Alert.WA.v1009.ps1"
 $EventID = "551"
 #=================================================================================
 
@@ -882,24 +885,24 @@ $SCOMCoreMP = Get-SCOMManagementPack -DisplayName "Windows Server 2016+ Active D
 $SCOMCoreRules = $SCOMCoreMP.GetRules()
 $SCOMCoreMonitors = $SCOMCoreMP.GetMonitors()
 
-$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts = Get-SCOMAlert -ResolutionState (0..254) | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
 $SCOMCoreReportAlerts.Count
 
-$SCOMCoreRuleAlerts = Get-SCOMAlert | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreRuleAlerts = $SCOMCoreReportAlerts | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) }
 $SCOMCoreRuleAlerts.Count
 
-$SCOMCoreMonitorAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreMonitorAlerts = $SCOMCoreReportAlerts | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) }
 $SCOMCoreMonitorAlerts.Count
 
-$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts = $SCOMCoreReportAlerts | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
 $SCOMCoreReportAlerts.Count
 $Test = $SCOMCoreReportAlerts.Count
 
 
-$OpenADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -ne "255"}
-$OpenADCSAlerts.Count
-$ClosedADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -eq "255"}
-$ClosedADCSAlerts.Count
+$OpenADCS2012Alerts = $SCOMCoreReportAlerts
+$OpenADCS2012Alerts.Count
+$ClosedADCS2012Alerts = get-SCOMAlert -ResolutionState 255 | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$ClosedADCS2012Alerts.Count
 
 $ADCSAlerts = $SCOMCoreReportAlerts | select MonitoringObjectDisplayName,Description
 
@@ -1138,7 +1141,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
           <Composite>
             <MemberModules>
               <WriteAction ID="PSWA" TypeID="Windows!Microsoft.Windows.PowerShellWriteAction">
-                <ScriptName>Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.WA.v1008.ps1</ScriptName>
+                <ScriptName>Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.WA.v1009.ps1</ScriptName>
                 <ScriptBody>
 #=================================================================================
 #  Script to gather ADCS alerts and close via on demand task
@@ -1152,7 +1155,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"`n Script Completed. `n Script Ru
 #=================================================================================
 # Assign script name variable for use in event logging.
 # ScriptName should be the same as the ID of the module that the script is contained in
-$ScriptName = "Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.WA.v1008.ps1"
+$ScriptName = "Proactive.DailyTasks.ADCSAlerts.SummaryReport.Script.Alert.WA.v1009.ps1"
 $EventID = "553"
 #=================================================================================
 
@@ -1201,22 +1204,28 @@ $SCOMCoreMP = Get-SCOMManagementPack -DisplayName "Windows Server 2016+ Active D
 $SCOMCoreRules = $SCOMCoreMP.GetRules()
 $SCOMCoreMonitors = $SCOMCoreMP.GetMonitors()
 
-$SCOMCoreReportAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts = Get-SCOMAlert -ResolutionState (0..254) | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
 $SCOMCoreReportAlerts.Count
 
-$SCOMCoreRuleAlerts = Get-SCOMAlert | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreRuleAlerts = $SCOMCoreReportAlerts | ? { ( $_.Name -in $SCOMCoreRules.DisplayName) }
 $SCOMCoreRuleAlerts.Count
 
-$SCOMCoreMonitorAlerts = Get-SCOMAlert | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) -AND ( $_.ResolutionState -ne "255" ) }
+$SCOMCoreMonitorAlerts = $SCOMCoreReportAlerts | ? { ($_.Name -in $SCOMCoreMonitors.DisplayName ) }
 $SCOMCoreMonitorAlerts.Count
+
+$SCOMCoreReportAlerts = $SCOMCoreReportAlerts | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
+$SCOMCoreReportAlerts.Count
 
 $Test = $SCOMCoreReportAlerts.Count
 
 
-$OpenADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -ne "255"}
+$OpenADCSAlerts = $SCOMCoreReportAlerts
 $OpenADCSAlerts.Count
-$ClosedADCSAlerts = $SCOMCoreReportAlerts | ? { $_.ResolutionState -eq "255"}
+$ClosedADCSAlerts = Get-SCOMAlert -ResolutionState 255 | ? { ($_.Name -in $SCOMCoreRules.DisplayName) -or ($_.Name -in $SCOMCoreMonitors.DisplayName) }
 $ClosedADCSAlerts.Count
+
+$Test = $SCOMCoreReportAlerts.Count
+
 
 $ADCSAlerts = $SCOMCoreReportAlerts | select MonitoringObjectDisplayName,Description
 
@@ -2488,6 +2497,7 @@ $momapi.LogScriptEvent($ScriptName,$EventID,0,"Script Completed. `n Script Runti
         <DisplayString ElementID="Microsoft.Windows.Active.Directory.Certificate.Services.2016.Monitoring.Addendum">
           <Name>Microsoft Windows Active Directory Certificate Services 2016 Monitoring Addendum</Name>
           <Description> Management Pack created to turn OFF all rules for ADCS, as the monitors look at the same event source
+v1.0.0.9   4 Jan 2024 - Resolution State logic improvements for large environments
 v1.0.0.8  27 Dec 2023 - Whitespace audit, added age to monitor reset logic
 v1.0.0.7  12 Dec 2023 - Updated reset logic to use Management Pack, removed ID property from reset logic
 v1.0.0.6   7 Dec 2023 - Closure and Report logic DS/WA added, Rules, Tasks, StringResource, DisplayStrings
