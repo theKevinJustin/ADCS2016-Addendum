@@ -1,5 +1,5 @@
 # ADCS2016-Addendum
-Microsoft.Windows.Active.Directory.Certificate.Services.2016.Monitoring.Addendum v1.0.0.8
+Microsoft.Windows.Active.Directory.Certificate.Services.2016.Monitoring.Addendum v1.0.0.9
 
 Download [here](https://github.com/theKevinJustin/ADCS2016-Addendum/blob/main/Microsoft.Windows.Active.Directory.Certificate.Services.2016.Monitoring.Addendum.xml)
 
@@ -10,6 +10,7 @@ Blog [https://kevinjustin.com/blog/2023/08/18/adcs-addendum-packs/](https://kevi
 
 # Version History:
 ```
+v1.0.0.9   4 Jan 2024 - Resolution State logic improvements for large environments
 v1.0.0.8  27 Dec 2023 - Whitespace audit, added age to monitor reset logic
 v1.0.0.7  12 Dec 2023 - Updated reset logic to use Management Pack, removed ID property from reset logic
 v1.0.0.6   7 Dec 2023 - Closure and Report logic DS/WA added, Rules, Tasks, StringResource, DisplayStrings
